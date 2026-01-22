@@ -295,11 +295,13 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php endif; ?>
                     </div>
                 <?php else: ?>
+                    <div class="table-responsive">
                     <table class="table table-hover table-sm mb-0">
                         <thead>
                             <tr>
                                 <th style="width: 30px;">#</th>
                                 <th>Nom complet</th>
+                                <th class="d-none d-md-table-cell">Fonction</th>
                                 <th class="d-none d-md-table-cell">Structure</th>
                                 <th>Contact</th>
                                 <th style="width: 80px;">Signature</th>
@@ -312,9 +314,10 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <td>
                                         <strong><?= sanitize($sig['first_name']) ?> <?= sanitize($sig['last_name']) ?></strong>
                                         <?php if ($sig['function_title']): ?>
-                                            <br><small class="text-muted"><?= sanitize($sig['function_title']) ?></small>
+                                            <br class="d-md-none"><small class="text-muted d-md-none"><?= sanitize($sig['function_title']) ?></small>
                                         <?php endif; ?>
                                     </td>
+                                    <td class="d-none d-md-table-cell"><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
                                     <td class="d-none d-md-table-cell"><?= $sig['structure'] ? sanitize($sig['structure']) : '-' ?></td>
                                     <td>
                                         <small><?= sanitize($sig['email']) ?></small>
@@ -329,6 +332,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php endforeach; ?>
                         </tbody>
                     </table>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
