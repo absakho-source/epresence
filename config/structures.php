@@ -71,10 +71,6 @@ $DGPPE_STRUCTURES = array(
         'SRP-SD' => 'SRP Sédhiou',
         'SRP-ZG' => 'SRP Ziguinchor',
     ),
-    'Autres' => array(
-        'EXTERNE' => 'Partenaire externe',
-        'AUTRE' => 'Autre structure',
-    ),
 );
 
 /**
