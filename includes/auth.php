@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/email.php';
 
 /**
  * Vérifier si l'utilisateur est connecté
@@ -29,7 +30,7 @@ function getCurrentUser() {
         return null;
     }
 
-    $stmt = db()->prepare("SELECT id, email, first_name, last_name, structure, role, created_at FROM users WHERE id = ?");
+    $stmt = db()->prepare("SELECT id, email, first_name, last_name, function_title, structure, is_structure_admin, role, status, created_at FROM users WHERE id = ?");
     $stmt->execute(array(getCurrentUserId()));
     $result = $stmt->fetch();
     return $result ? $result : null;
@@ -93,11 +94,11 @@ function registerUser($email, $password, $firstName, $lastName, $structure = nul
     // Hachage du mot de passe
     $hashedPassword = password_hash($password, PASSWORD_BCRYPT, ['cost' => 12]);
 
-    // Insertion
+    // Insertion avec statut 'pending' (en attente de validation admin)
     try {
         $stmt = db()->prepare("
-            INSERT INTO users (email, password, first_name, last_name, structure)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (email, password, first_name, last_name, structure, status)
+            VALUES (?, ?, ?, ?, ?, 'pending')
         ");
         $stmt->execute([
             strtolower(trim($email)),
@@ -107,7 +108,24 @@ function registerUser($email, $password, $firstName, $lastName, $structure = nul
             $structure ? trim($structure) : null
         ]);
 
-        return ['success' => true, 'user_id' => db()->lastInsertId()];
+        $userId = db()->lastInsertId();
+
+        // Préparer les données utilisateur pour les emails
+        $userData = [
+            'id' => $userId,
+            'email' => strtolower(trim($email)),
+            'first_name' => trim($firstName),
+            'last_name' => trim($lastName),
+            'structure' => $structure ? trim($structure) : null
+        ];
+
+        // Envoyer email de notification à l'admin
+        notifyAdminNewRegistration($userData);
+
+        // Envoyer email de confirmation à l'utilisateur
+        notifyUserRegistrationPending($userData);
+
+        return ['success' => true, 'user_id' => $userId, 'pending' => true];
     } catch (PDOException $e) {
         return ['success' => false, 'errors' => ["Erreur lors de l'inscription. Veuillez réessayer."]];
     }
@@ -131,9 +149,14 @@ function loginUser($email, $password) {
         return ['success' => false, 'error' => "Email ou mot de passe incorrect."];
     }
 
-    // Vérifier si le compte est suspendu
-    if (isset($user['status']) && $user['status'] === 'suspended') {
-        return ['success' => false, 'error' => "Votre compte a été suspendu. Contactez l'administrateur."];
+    // Vérifier le statut du compte
+    if (isset($user['status'])) {
+        if ($user['status'] === 'pending') {
+            return ['success' => false, 'error' => "Votre compte est en attente de validation par un administrateur. Vous recevrez un email une fois votre compte activé."];
+        }
+        if ($user['status'] === 'suspended') {
+            return ['success' => false, 'error' => "Votre compte a été suspendu. Contactez l'administrateur à " . MAIL_ADMIN];
+        }
     }
 
     // Créer la session
@@ -207,7 +230,7 @@ function requireAdmin() {
  * Obtenir tous les utilisateurs (admin seulement)
  */
 function getAllUsers() {
-    $stmt = db()->prepare("SELECT id, email, first_name, last_name, structure, role, status, created_at FROM users ORDER BY created_at DESC");
+    $stmt = db()->prepare("SELECT id, email, first_name, last_name, function_title, structure, is_structure_admin, role, status, created_at FROM users ORDER BY created_at DESC");
     $stmt->execute();
     return $stmt->fetchAll();
 }
@@ -238,12 +261,98 @@ function deleteUser($userId) {
 /**
  * Suspendre ou activer un utilisateur
  */
-function toggleUserStatus($userId) {
+function toggleUserStatus($userId, $sendEmail = true) {
     // Ne pas permettre de se suspendre soi-même
     if ($userId == getCurrentUserId()) {
         return false;
     }
-    $stmt = db()->prepare("UPDATE users SET status = IF(status = 'active', 'suspended', 'active') WHERE id = ?");
+
+    // Récupérer l'utilisateur pour connaître son statut actuel
+    $user = getUserById($userId);
+    if (!$user) {
+        return false;
+    }
+
+    // Ne pas permettre de toggler un compte pending (utiliser approveUser ou rejectUser)
+    if ($user['status'] === 'pending') {
+        return false;
+    }
+
+    $newStatus = ($user['status'] === 'active') ? 'suspended' : 'active';
+
+    // PostgreSQL utilise CASE WHEN au lieu de IF
+    $stmt = db()->prepare("UPDATE users SET status = CASE WHEN status = 'active' THEN 'suspended' ELSE 'active' END WHERE id = ?");
+    $result = $stmt->execute(array($userId));
+
+    // Envoyer email de notification
+    if ($result && $sendEmail) {
+        $user['status'] = $newStatus; // Mettre à jour pour l'email
+        if ($newStatus === 'suspended') {
+            notifyUserAccountSuspended($user);
+        } else {
+            notifyUserAccountReactivated($user);
+        }
+    }
+
+    return $result;
+}
+
+/**
+ * Obtenir les utilisateurs en attente de validation
+ */
+function getPendingUsers() {
+    $stmt = db()->prepare("SELECT id, email, first_name, last_name, function_title, structure, is_structure_admin, role, status, created_at FROM users WHERE status = 'pending' ORDER BY created_at ASC");
+    $stmt->execute();
+    return $stmt->fetchAll();
+}
+
+/**
+ * Compter les utilisateurs en attente
+ */
+function countPendingUsers() {
+    $stmt = db()->prepare("SELECT COUNT(*) as count FROM users WHERE status = 'pending'");
+    $stmt->execute();
+    $result = $stmt->fetch();
+    return $result ? intval($result['count']) : 0;
+}
+
+/**
+ * Approuver un utilisateur en attente
+ */
+function approveUser($userId) {
+    // Récupérer l'utilisateur
+    $user = getUserById($userId);
+    if (!$user || $user['status'] !== 'pending') {
+        return false;
+    }
+
+    $adminId = getCurrentUserId();
+    $stmt = db()->prepare("UPDATE users SET status = 'active', approved_at = CURRENT_TIMESTAMP, approved_by = ? WHERE id = ? AND status = 'pending'");
+    $result = $stmt->execute(array($adminId, $userId));
+
+    // Envoyer email de notification
+    if ($result) {
+        notifyUserAccountApproved($user);
+    }
+
+    return $result;
+}
+
+/**
+ * Rejeter un utilisateur en attente (suppression)
+ */
+function rejectUser($userId, $reason = null) {
+    // Récupérer l'utilisateur pour l'email
+    $user = getUserById($userId);
+    if (!$user || $user['status'] !== 'pending') {
+        return false;
+    }
+
+    // Envoyer email de notification AVANT suppression
+    notifyUserAccountRejected($user, $reason);
+
+    // Supprimer l'utilisateur
+    $stmt = db()->prepare("DELETE FROM users WHERE id = ? AND status = 'pending'");
     return $stmt->execute(array($userId));
 }
 
@@ -251,7 +360,7 @@ function toggleUserStatus($userId) {
  * Obtenir un utilisateur par ID
  */
 function getUserById($userId) {
-    $stmt = db()->prepare("SELECT id, email, first_name, last_name, structure, role, status, created_at FROM users WHERE id = ?");
+    $stmt = db()->prepare("SELECT id, email, first_name, last_name, function_title, structure, is_structure_admin, role, status, created_at FROM users WHERE id = ?");
     $stmt->execute(array($userId));
     return $stmt->fetch();
 }
@@ -260,7 +369,7 @@ function getUserById($userId) {
  * Mettre à jour un utilisateur (admin)
  */
 function updateUser($userId, $data) {
-    $allowedFields = array('first_name', 'last_name', 'structure', 'role', 'status');
+    $allowedFields = array('first_name', 'last_name', 'function_title', 'structure', 'is_structure_admin', 'role', 'status');
     $updates = array();
     $params = array();
 

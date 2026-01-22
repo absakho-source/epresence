@@ -34,17 +34,31 @@ $bodyClass = $bodyClass ?? '';
     <?php endif; ?>
 </head>
 <body class="<?= sanitize($bodyClass) ?>">
+    <!-- En-tête officiel -->
+    <header class="official-header bg-white border-bottom">
+        <div class="container py-2">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <a href="<?= SITE_URL ?>" class="d-flex align-items-center text-decoration-none">
+                        <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>" alt="Logo DGPPE" height="60" class="me-3">
+                    </a>
+                </div>
+                <div class="col">
+                    <div class="official-titles">
+                        <div class="ministry-name text-muted small"><?= MINISTRY_NAME ?></div>
+                        <div class="org-name fw-semibold text-dark"><?= ORG_FULL_NAME ?></div>
+                        <div class="platform-name text-primary fw-bold">Plateforme d'Émargement Électronique (e-Présence)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
     <!-- Navbar Principal -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dgppe">
         <div class="container">
-            <a class="navbar-brand d-flex align-items-center" href="<?= SITE_URL ?>">
-                <div class="brand-logo-wrapper me-2">
-                    <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>" alt="Logo DGPPE" height="40">
-                </div>
-                <div class="brand-text">
-                    <span class="d-block fw-bold brand-title"><?= SITE_NAME ?></span>
-                    <small class="d-none d-sm-block brand-subtitle"><?= ORG_NAME ?></small>
-                </div>
+            <a class="navbar-brand d-flex align-items-center d-lg-none" href="<?= SITE_URL ?>">
+                <span class="fw-bold"><?= SITE_NAME ?></span>
             </a>
             <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -80,6 +94,7 @@ $bodyClass = $bodyClass ?? '';
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="<?= SITE_URL ?>/pages/dashboard/index.php"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</a></li>
+                                <li><a class="dropdown-item" href="<?= SITE_URL ?>/pages/dashboard/profile.php"><i class="bi bi-person me-2"></i>Mon profil</a></li>
                                 <?php if (isAdmin()): ?>
                                 <li><a class="dropdown-item text-warning" href="<?= SITE_URL ?>/pages/admin/index.php"><i class="bi bi-shield-lock me-2"></i>Administration</a></li>
                                 <?php endif; ?>

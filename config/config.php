@@ -43,6 +43,16 @@ define('CSRF_TOKEN_LIFETIME', 3600); // 1 heure
 // Timezone
 date_default_timezone_set('Africa/Dakar');
 
+// Configuration Email
+define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@economie.gouv.sn');
+define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: 'e-Presence DGPPE');
+define('MAIL_ADMIN', getenv('MAIL_ADMIN') ?: 'epresence@economie.gouv.sn');
+define('MAIL_SMTP_HOST', getenv('MAIL_SMTP_HOST') ?: '');
+define('MAIL_SMTP_PORT', getenv('MAIL_SMTP_PORT') ?: 587);
+define('MAIL_SMTP_USER', getenv('MAIL_SMTP_USER') ?: '');
+define('MAIL_SMTP_PASS', getenv('MAIL_SMTP_PASS') ?: '');
+define('MAIL_SMTP_SECURE', getenv('MAIL_SMTP_SECURE') ?: 'tls');
+
 // Gestion des erreurs selon le mode
 if (DEBUG_MODE) {
     error_reporting(E_ALL);

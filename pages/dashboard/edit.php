@@ -29,6 +29,8 @@ $formData = [
     'description' => $sheet['description'],
     'event_date' => $sheet['event_date'],
     'event_time' => $sheet['event_time'],
+    'end_time' => isset($sheet['end_time']) ? $sheet['end_time'] : '',
+    'auto_close' => isset($sheet['auto_close']) ? $sheet['auto_close'] : false,
     'location' => $sheet['location']
 ];
 
@@ -42,6 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'description' => trim($_POST['description'] ?? ''),
             'event_date' => $_POST['event_date'] ?? '',
             'event_time' => $_POST['event_time'] ?? '',
+            'end_time' => $_POST['end_time'] ?? '',
+            'auto_close' => isset($_POST['auto_close']),
             'location' => trim($_POST['location'] ?? '')
         ];
 
@@ -61,6 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         description = ?,
                         event_date = ?,
                         event_time = ?,
+                        end_time = ?,
+                        auto_close = ?,
                         location = ?
                     WHERE id = ?
                 ");
@@ -69,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $formData['description'] ?: null,
                     $formData['event_date'],
                     $formData['event_time'] ?: null,
+                    $formData['end_time'] ?: null,
+                    $formData['auto_close'] ? true : false,
                     $formData['location'] ?: null,
                     $sheetId
                 ]);
@@ -126,15 +134,31 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-6 mb-3">
+                        <div class="col-md-4 mb-3">
                             <label for="event_date" class="form-label">Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="event_date" name="event_date"
                                    value="<?= sanitize($formData['event_date']) ?>" required>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="event_time" class="form-label">Heure</label>
+                        <div class="col-md-4 mb-3">
+                            <label for="event_time" class="form-label">Heure de début</label>
                             <input type="time" class="form-control" id="event_time" name="event_time"
                                    value="<?= sanitize($formData['event_time']) ?>">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="end_time" class="form-label">Heure de fin</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time"
+                                   value="<?= sanitize($formData['end_time']) ?>">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="auto_close" name="auto_close"
+                                   <?= $formData['auto_close'] ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="auto_close">
+                                Clôturer automatiquement à l'heure de fin
+                            </label>
+                            <div class="form-text">Si coché, les signatures ne seront plus acceptées après l'heure de fin.</div>
                         </div>
                     </div>
 

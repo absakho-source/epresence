@@ -24,6 +24,23 @@ if (empty($code)) {
     } elseif ($sheet['status'] !== 'active') {
         $pageTitle = 'Feuille clôturée';
         $error = 'Cette feuille d\'émargement est clôturée et n\'accepte plus de signatures.';
+    } else {
+        // Vérifier si la feuille doit être auto-clôturée
+        if (isset($sheet['auto_close']) && $sheet['auto_close'] && isset($sheet['end_time']) && $sheet['end_time']) {
+            $eventDate = $sheet['event_date'];
+            $endTime = $sheet['end_time'];
+            $endDateTime = strtotime($eventDate . ' ' . $endTime);
+            $now = time();
+
+            if ($now > $endDateTime) {
+                // Clôturer automatiquement la feuille
+                $updateStmt = db()->prepare("UPDATE sheets SET status = 'closed', closed_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'active'");
+                $updateStmt->execute([$sheet['id']]);
+
+                $pageTitle = 'Feuille clôturée';
+                $error = 'Cette feuille d\'émargement a été automatiquement clôturée à ' . formatTime($endTime) . '. Les signatures ne sont plus acceptées.';
+            }
+        }
     }
 }
 
@@ -123,9 +140,18 @@ $bodyClass = 'sign-page';
                                     <?= formatDateFr($sheet['event_date']) ?>
                                     <?php if ($sheet['event_time']): ?>
                                         à <?= formatTime($sheet['event_time']) ?>
+                                        <?php if (isset($sheet['end_time']) && $sheet['end_time']): ?>
+                                            - <?= formatTime($sheet['end_time']) ?>
+                                        <?php endif; ?>
                                     <?php endif; ?>
                                     <?php if ($sheet['location']): ?>
                                         <br><i class="bi bi-geo-alt me-1"></i><?= sanitize($sheet['location']) ?>
+                                    <?php endif; ?>
+                                    <?php if (isset($sheet['auto_close']) && $sheet['auto_close'] && isset($sheet['end_time']) && $sheet['end_time']): ?>
+                                        <br><small class="text-warning">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            Signatures acceptées jusqu'à <?= formatTime($sheet['end_time']) ?>
+                                        </small>
                                     <?php endif; ?>
                                 </div>
                             </div>

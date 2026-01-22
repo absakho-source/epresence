@@ -4,17 +4,42 @@
  */
 
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
 $sheetId = intval($_GET['id'] ?? 0);
+$currentUser = getCurrentUser();
+$isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
+$isStructureView = isset($_GET['structure']) && $_GET['structure'] == '1';
 
-// Récupérer la feuille
-$stmt = db()->prepare("SELECT * FROM sheets WHERE id = ? AND user_id = ?");
-$stmt->execute([$sheetId, getCurrentUserId()]);
+// Récupérer la feuille avec infos du créateur
+$stmt = db()->prepare("
+    SELECT s.*, u.first_name as creator_first_name, u.last_name as creator_last_name, u.structure as creator_structure
+    FROM sheets s
+    JOIN users u ON s.user_id = u.id
+    WHERE s.id = ?
+");
+$stmt->execute([$sheetId]);
 $sheet = $stmt->fetch();
 
 if (!$sheet) {
     setFlash('error', 'Feuille non trouvée.');
+    redirect(SITE_URL . '/pages/dashboard/index.php');
+}
+
+// Vérifier les droits d'accès
+$isOwner = ($sheet['user_id'] == getCurrentUserId());
+$canViewAsStructureAdmin = false;
+$canViewAsGlobalAdmin = isAdmin();
+
+if (!$isOwner && $isStructureAdmin) {
+    // Vérifier si le créateur appartient à la même catégorie de structure
+    $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+    $canViewAsStructureAdmin = in_array($sheet['creator_structure'], $structureCodes);
+}
+
+if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsGlobalAdmin) {
+    setFlash('error', 'Vous n\'avez pas accès à cette feuille.');
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
 
@@ -27,19 +52,19 @@ $signaturesStmt = db()->prepare("
 $signaturesStmt->execute([$sheetId]);
 $signatures = $signaturesStmt->fetchAll();
 
-// Traitement des actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
+// Traitement des actions (uniquement pour le propriétaire)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '') && $isOwner) {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'close' && $sheet['status'] === 'active') {
-        $updateStmt = db()->prepare("UPDATE sheets SET status = 'closed' WHERE id = ?");
-        $updateStmt->execute([$sheetId]);
+        $updateStmt = db()->prepare("UPDATE sheets SET status = 'closed', closed_at = CURRENT_TIMESTAMP, closed_by = ? WHERE id = ?");
+        $updateStmt->execute([getCurrentUserId(), $sheetId]);
         setFlash('success', 'Feuille clôturée avec succès.');
         redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
     }
 
     if ($action === 'reopen' && $sheet['status'] === 'closed') {
-        $updateStmt = db()->prepare("UPDATE sheets SET status = 'active' WHERE id = ?");
+        $updateStmt = db()->prepare("UPDATE sheets SET status = 'active', closed_at = NULL, closed_by = NULL WHERE id = ?");
         $updateStmt->execute([$sheetId]);
         setFlash('success', 'Feuille réouverte avec succès.');
         redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
@@ -75,8 +100,29 @@ require_once __DIR__ . '/../../includes/header.php';
                 default => $sheet['status']
             } ?>
         </span>
+        <?php if (!$isOwner): ?>
+            <span class="badge bg-warning text-dark ms-1">
+                <i class="bi bi-people me-1"></i>Feuille de structure
+            </span>
+        <?php endif; ?>
     </div>
 </div>
+
+<?php if (!$isOwner): ?>
+<div class="alert alert-warning mb-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-info-circle me-2"></i>
+        <div>
+            <strong>Consultation en mode super-utilisateur</strong><br>
+            <small>Cette feuille a été créée par <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+            <?php if (!empty($sheet['creator_structure'])): ?>
+                (<?= sanitize(getStructureName($sheet['creator_structure'])) ?>)
+            <?php endif; ?>
+            . Seul le créateur peut la modifier.</small>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <div class="row">
     <!-- Informations et QR Code -->
@@ -90,10 +136,24 @@ require_once __DIR__ . '/../../includes/header.php';
                 <p class="mb-2">
                     <i class="bi bi-calendar-event me-2 text-muted"></i>
                     <strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?>
+                </p>
+                <?php if ($sheet['event_time'] || (isset($sheet['end_time']) && $sheet['end_time'])): ?>
+                <p class="mb-2">
+                    <i class="bi bi-clock me-2 text-muted"></i>
+                    <strong>Horaires :</strong>
                     <?php if ($sheet['event_time']): ?>
-                        à <?= formatTime($sheet['event_time']) ?>
+                        <?= formatTime($sheet['event_time']) ?>
+                    <?php endif; ?>
+                    <?php if (isset($sheet['end_time']) && $sheet['end_time']): ?>
+                        - <?= formatTime($sheet['end_time']) ?>
+                        <?php if (isset($sheet['auto_close']) && $sheet['auto_close']): ?>
+                            <span class="badge bg-info ms-1" title="Les signatures seront refusées après cette heure">
+                                <i class="bi bi-lock"></i> Auto
+                            </span>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </p>
+                <?php endif; ?>
                 <?php if ($sheet['location']): ?>
                     <p class="mb-2">
                         <i class="bi bi-geo-alt me-2 text-muted"></i>
@@ -124,11 +184,11 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="qr-code-container mb-3" id="qrcode" data-qr-code="<?= sanitize($signUrl) ?>" data-qr-size="200">
                     </div>
                     <div class="d-grid gap-2">
+                        <a href="<?= SITE_URL ?>/pages/dashboard/print-qr.php?id=<?= $sheet['id'] ?>" class="btn btn-primary btn-sm" target="_blank">
+                            <i class="bi bi-file-earmark-text me-2"></i>Document à distribuer
+                        </a>
                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="downloadQRCode('qrcode', 'qr-<?= $sheet['unique_code'] ?>.png')">
-                            <i class="bi bi-download me-2"></i>Télécharger
-                        </button>
-                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="printQRCode('qrcode')">
-                            <i class="bi bi-printer me-2"></i>Imprimer
+                            <i class="bi bi-download me-2"></i>Télécharger QR
                         </button>
                     </div>
                 </div>
@@ -158,7 +218,7 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    <!-- Exports -->
+                    <!-- Exports (disponible pour tous) -->
                     <a href="<?= SITE_URL ?>/pages/export/pdf.php?id=<?= $sheet['id'] ?>" class="btn btn-primary" target="_blank">
                         <i class="bi bi-file-earmark-pdf me-2"></i>Exporter en PDF
                     </a>
@@ -166,9 +226,10 @@ require_once __DIR__ . '/../../includes/header.php';
                         <i class="bi bi-file-earmark-excel me-2"></i>Exporter en Excel
                     </a>
 
+                    <?php if ($isOwner): ?>
                     <hr>
 
-                    <!-- Gestion -->
+                    <!-- Gestion (propriétaire uniquement) -->
                     <?php if ($sheet['status'] === 'active'): ?>
                         <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>" class="btn btn-outline-secondary">
                             <i class="bi bi-pencil me-2"></i>Modifier
@@ -197,6 +258,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <i class="bi bi-trash me-2"></i>Supprimer
                         </button>
                     </form>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

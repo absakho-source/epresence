@@ -4,36 +4,100 @@
  */
 
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
 $userId = getCurrentUserId();
+$currentUser = getCurrentUser();
+$isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
+
+// Obtenir les structures de la même catégorie si super-utilisateur
+$structureCodes = array();
+if ($isStructureAdmin) {
+    $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+}
 
 // Récupérer les statistiques
-$statsQuery = db()->prepare("
-    SELECT
-        COUNT(*) as total_sheets,
-        COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sheets,
-        COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_sheets,
-        (SELECT COUNT(*) FROM signatures s
-         JOIN sheets sh ON s.sheet_id = sh.id
-         WHERE sh.user_id = ?) as total_signatures
-    FROM sheets
-    WHERE user_id = ?
-");
-$statsQuery->execute([$userId, $userId]);
-$stats = $statsQuery->fetch();
+if ($isStructureAdmin && count($structureCodes) > 0) {
+    // Super-utilisateur: voir toutes les feuilles de la structure
+    $placeholders = implode(',', array_fill(0, count($structureCodes), '?'));
 
-// Récupérer les feuilles récentes
-$sheetsQuery = db()->prepare("
-    SELECT s.*,
-           (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count
-    FROM sheets s
-    WHERE s.user_id = ?
-    ORDER BY s.created_at DESC
-    LIMIT 10
-");
-$sheetsQuery->execute([$userId]);
-$sheets = $sheetsQuery->fetchAll();
+    // Stats pour ses propres feuilles
+    $statsQuery = db()->prepare("
+        SELECT
+            COUNT(*) as total_sheets,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sheets,
+            COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_sheets,
+            (SELECT COUNT(*) FROM signatures s
+             JOIN sheets sh ON s.sheet_id = sh.id
+             WHERE sh.user_id = ?) as total_signatures
+        FROM sheets
+        WHERE user_id = ?
+    ");
+    $statsQuery->execute([$userId, $userId]);
+    $stats = $statsQuery->fetch();
+
+    // Stats pour toute la structure
+    $structureStatsQuery = db()->prepare("
+        SELECT
+            COUNT(*) as structure_sheets,
+            (SELECT COUNT(*) FROM signatures s
+             JOIN sheets sh ON s.sheet_id = sh.id
+             JOIN users u ON sh.user_id = u.id
+             WHERE u.structure IN ($placeholders)) as structure_signatures
+        FROM sheets sh
+        JOIN users u ON sh.user_id = u.id
+        WHERE u.structure IN ($placeholders)
+    ");
+    $structureStatsQuery->execute(array_merge($structureCodes, $structureCodes));
+    $structureStats = $structureStatsQuery->fetch();
+
+    // Récupérer les feuilles de la structure
+    $sheetsQuery = db()->prepare("
+        SELECT s.*,
+               u.first_name as creator_first_name,
+               u.last_name as creator_last_name,
+               u.structure as creator_structure,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
+        FROM sheets s
+        JOIN users u ON s.user_id = u.id
+        WHERE u.structure IN ($placeholders)
+        ORDER BY s.created_at DESC
+        LIMIT 20
+    ");
+    $sheetsQuery->execute(array_merge([$userId], $structureCodes));
+    $sheets = $sheetsQuery->fetchAll();
+} else {
+    // Utilisateur standard: voir uniquement ses propres feuilles
+    $statsQuery = db()->prepare("
+        SELECT
+            COUNT(*) as total_sheets,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sheets,
+            COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_sheets,
+            (SELECT COUNT(*) FROM signatures s
+             JOIN sheets sh ON s.sheet_id = sh.id
+             WHERE sh.user_id = ?) as total_signatures
+        FROM sheets
+        WHERE user_id = ?
+    ");
+    $statsQuery->execute([$userId, $userId]);
+    $stats = $statsQuery->fetch();
+    $structureStats = null;
+
+    // Récupérer les feuilles récentes
+    $sheetsQuery = db()->prepare("
+        SELECT s.*,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               1 as is_owner
+        FROM sheets s
+        WHERE s.user_id = ?
+        ORDER BY s.created_at DESC
+        LIMIT 10
+    ");
+    $sheetsQuery->execute([$userId]);
+    $sheets = $sheetsQuery->fetchAll();
+}
 
 $pageTitle = 'Tableau de bord';
 require_once __DIR__ . '/../../includes/header.php';
@@ -46,13 +110,13 @@ require_once __DIR__ . '/../../includes/header.php';
     </a>
 </div>
 
-<!-- Statistiques -->
+<!-- Statistiques personnelles -->
 <div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card h-100">
             <div class="card-body dashboard-stat">
                 <div class="stat-number"><?= $stats['total_sheets'] ?></div>
-                <div class="stat-label">Feuilles créées</div>
+                <div class="stat-label">Mes feuilles</div>
             </div>
         </div>
     </div>
@@ -60,7 +124,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="card h-100">
             <div class="card-body dashboard-stat">
                 <div class="stat-number text-success"><?= $stats['active_sheets'] ?></div>
-                <div class="stat-label">Feuilles actives</div>
+                <div class="stat-label">Actives</div>
             </div>
         </div>
     </div>
@@ -68,7 +132,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="card h-100">
             <div class="card-body dashboard-stat">
                 <div class="stat-number text-secondary"><?= $stats['closed_sheets'] ?></div>
-                <div class="stat-label">Feuilles clôturées</div>
+                <div class="stat-label">Clôturées</div>
             </div>
         </div>
     </div>
@@ -76,16 +140,52 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="card h-100">
             <div class="card-body dashboard-stat">
                 <div class="stat-number text-info"><?= $stats['total_signatures'] ?></div>
-                <div class="stat-label">Signatures totales</div>
+                <div class="stat-label">Signatures</div>
             </div>
         </div>
     </div>
 </div>
 
+<?php if ($isStructureAdmin && $structureStats): ?>
+<!-- Statistiques de la structure (super-utilisateur) -->
+<div class="alert alert-warning mb-4">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-star-fill me-2"></i>
+        <strong>Mode Super-utilisateur</strong>
+        <span class="ms-2">- Vous voyez toutes les feuilles de votre structure: <?= sanitize(getStructureCategory($currentUser['structure'])) ?></span>
+    </div>
+</div>
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100 border-warning">
+            <div class="card-body dashboard-stat">
+                <div class="stat-number text-warning"><?= $structureStats['structure_sheets'] ?></div>
+                <div class="stat-label">Feuilles de la structure</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100 border-warning">
+            <div class="card-body dashboard-stat">
+                <div class="stat-number text-warning"><?= $structureStats['structure_signatures'] ?></div>
+                <div class="stat-label">Signatures structure</div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
 <!-- Liste des feuilles -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-list-ul me-2"></i>Mes feuilles d'émargement</h5>
+        <h5 class="mb-0">
+            <i class="bi bi-list-ul me-2"></i>
+            <?php if ($isStructureAdmin): ?>
+                Feuilles de la structure
+            <?php else: ?>
+                Mes feuilles d'émargement
+            <?php endif; ?>
+        </h5>
     </div>
     <div class="card-body">
         <?php if (empty($sheets)): ?>
@@ -102,7 +202,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <?php else: ?>
             <div class="list-group list-group-flush">
                 <?php foreach ($sheets as $sheet): ?>
-                    <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
+                    <div class="list-group-item sheet-item status-<?= $sheet['status'] ?> <?= empty($sheet['is_owner']) ? 'border-start border-warning border-3' : '' ?>">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-1">
@@ -112,7 +212,21 @@ require_once __DIR__ . '/../../includes/header.php';
                                         $statusLabel = isset($statusLabels[$sheet['status']]) ? $statusLabels[$sheet['status']] : $sheet['status'];
                                     ?>
                                     <span class="badge badge-<?= $sheet['status'] ?>"><?= $statusLabel ?></span>
+                                    <?php if (empty($sheet['is_owner'])): ?>
+                                        <span class="badge bg-warning text-dark ms-1" title="Créée par un membre de votre structure">
+                                            <i class="bi bi-people me-1"></i>Structure
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
+                                <?php if (empty($sheet['is_owner']) && isset($sheet['creator_first_name'])): ?>
+                                    <div class="text-muted small mb-1">
+                                        <i class="bi bi-person me-1"></i>
+                                        Créée par <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+                                        <?php if (!empty($sheet['creator_structure'])): ?>
+                                            (<?= sanitize(getStructureName($sheet['creator_structure'])) ?>)
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                                 <div class="text-muted small">
                                     <i class="bi bi-calendar-event me-1"></i>
                                     <?= formatDateFr($sheet['event_date']) ?>
@@ -132,11 +246,11 @@ require_once __DIR__ . '/../../includes/header.php';
                                 </div>
                             </div>
                             <div class="btn-group">
-                                <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?>"
+                                <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?><?= empty($sheet['is_owner']) ? '&structure=1' : '' ?>"
                                    class="btn btn-sm btn-outline-primary" title="Voir">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <?php if ($sheet['status'] === 'active'): ?>
+                                <?php if ($sheet['status'] === 'active' && !empty($sheet['is_owner'])): ?>
                                     <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
                                        class="btn btn-sm btn-outline-secondary" title="Modifier">
                                         <i class="bi bi-pencil"></i>

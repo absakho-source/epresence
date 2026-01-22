@@ -16,9 +16,13 @@ CREATE TABLE users (
     password VARCHAR(255) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
+    function_title VARCHAR(255),
     structure VARCHAR(255),
+    is_structure_admin BOOLEAN DEFAULT FALSE,
     role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
-    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'suspended')),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended')),
+    approved_at TIMESTAMP,
+    approved_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -38,9 +42,13 @@ CREATE TABLE sheets (
     description TEXT,
     event_date DATE NOT NULL,
     event_time TIME,
+    end_time TIME,
+    auto_close BOOLEAN DEFAULT FALSE,
     location VARCHAR(255),
     unique_code VARCHAR(32) UNIQUE NOT NULL,
     status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'closed', 'archived')),
+    closed_at TIMESTAMP,
+    closed_by INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

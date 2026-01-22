@@ -6,16 +6,16 @@
 
 // Structures organisées par catégorie
 $DGPPE_STRUCTURES = array(
-    'Cabinet du Directeur Général' => array(
-        'DG' => 'Cabinet du Directeur Général',
-        'COORD' => 'Coordonnateur',
-        'CT1' => 'Conseiller Technique 1',
-        'CT2' => 'Conseiller Technique 2',
-        'CT3' => 'Conseiller Technique 3',
-        'BC' => 'Bureau du Courrier',
-        'BI' => 'Bureau Informatique',
-        'BA' => 'Bureau des Archives',
-        'BCOM' => 'Bureau de la Communication',
+    'Direction générale' => array(
+        'DG' => 'Direction générale',
+        'DG-COORD' => 'Coordonnateur',
+        'DG-CT1' => 'Conseiller Technique 1',
+        'DG-CT2' => 'Conseiller Technique 2',
+        'DG-CT3' => 'Conseiller Technique 3',
+        'DG-BC' => 'Bureau du Courrier',
+        'DG-BI' => 'Bureau Informatique',
+        'DG-BA' => 'Bureau des Archives',
+        'DG-BCOM' => 'Bureau de la Communication',
     ),
     'Direction de la Planification (DP)' => array(
         'DP' => 'Direction de la Planification',
@@ -109,4 +109,38 @@ function getStructureName($code) {
 function isValidStructure($code) {
     $list = getStructuresList();
     return isset($list[$code]);
+}
+
+/**
+ * Obtenir la catégorie d'une structure par son code
+ */
+function getStructureCategory($code) {
+    global $DGPPE_STRUCTURES;
+    foreach ($DGPPE_STRUCTURES as $category => $structures) {
+        if (isset($structures[$code])) {
+            return $category;
+        }
+    }
+    return null;
+}
+
+/**
+ * Obtenir tous les codes de structures d'une même catégorie
+ */
+function getStructureCodesInCategory($code) {
+    global $DGPPE_STRUCTURES;
+    $category = getStructureCategory($code);
+    if ($category && isset($DGPPE_STRUCTURES[$category])) {
+        return array_keys($DGPPE_STRUCTURES[$category]);
+    }
+    return array($code);
+}
+
+/**
+ * Vérifier si deux structures appartiennent à la même catégorie
+ */
+function areStructuresInSameCategory($code1, $code2) {
+    $cat1 = getStructureCategory($code1);
+    $cat2 = getStructureCategory($code2);
+    return $cat1 !== null && $cat1 === $cat2;
 }

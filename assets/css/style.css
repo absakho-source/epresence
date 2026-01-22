@@ -40,6 +40,68 @@ main {
     font-size: 0.8rem;
 }
 
+/* Official Header */
+.official-header {
+    background-color: #fff;
+}
+
+.official-header .official-titles {
+    line-height: 1.4;
+}
+
+.official-header .ministry-name {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.official-header .org-name {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.official-header .platform-name {
+    font-size: 1.1rem;
+    color: var(--dgppe-green);
+}
+
+@media (max-width: 768px) {
+    .official-header img {
+        height: 45px !important;
+    }
+
+    .official-header .ministry-name {
+        font-size: 0.7rem;
+    }
+
+    .official-header .org-name {
+        font-size: 0.8rem;
+    }
+
+    .official-header .platform-name {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .official-header img {
+        height: 40px !important;
+    }
+
+    .official-header .ministry-name {
+        display: none;
+    }
+
+    .official-header .org-name {
+        font-size: 0.75rem;
+    }
+
+    .official-header .platform-name {
+        font-size: 0.85rem;
+    }
+}
+
 /* Navbar DGPPE */
 .bg-dgppe {
     background: linear-gradient(135deg, var(--dgppe-green) 0%, var(--dgppe-green-dark) 100%);

@@ -15,6 +15,11 @@ Thumbs.db
 
 # Logs
 *.log
+logs/*
+!logs/.gitkeep
+
+# Migration scripts (à supprimer après exécution)
+migrate-*.php
 
 # Temporary/test files
 check.php

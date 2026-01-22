@@ -87,8 +87,8 @@ require_once __DIR__ . '/../../includes/header.php';
                 <?php if (DEBUG_MODE): ?>
                 <script>
                 function fillTestCredentials() {
-                    document.getElementById('email').value = 'admin@dgppe.gouv.sn';
-                    document.getElementById('password').value = 'password';
+                    document.getElementById('email').value = 'admin@economie.gouv.sn';
+                    document.getElementById('password').value = 'Admin@2025';
                 }
                 </script>
                 <?php endif; ?>

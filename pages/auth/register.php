@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = registerUser($email, $password, $firstName, $lastName, $structure);
 
             if ($result['success']) {
-                setFlash('success', 'Inscription réussie ! Vous pouvez maintenant vous connecter.');
+                setFlash('info', 'Inscription enregistrée ! Votre compte est en attente de validation par un administrateur. Vous recevrez un email une fois votre compte activé.');
                 redirect(SITE_URL . '/pages/auth/login.php');
             } else {
                 $errors = $result['errors'];
