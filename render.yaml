@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: epresence-dgppe
+    env: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DB_HOST
+        value: sql5c50c.megasqlservers.eu
+      - key: DB_PORT
+        value: "3306"
+      - key: DB_NAME
+        value: myapp_dgppesn461570470
+      - key: DB_USER
+        value: dgppesn461570470
+      - key: DB_PASS
+        sync: false
+      - key: SITE_URL
+        fromService:
+          type: web
+          name: epresence-dgppe
+          property: host
+      - key: DEBUG_MODE
+        value: "true"

@@ -1,0 +1,26 @@
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Development
+deploy.sh
+*.md
+.DS_Store
+
+# Temporary files
+sessions/*
+!sessions/.htaccess
+!sessions/index.php
+
+# Logs
+*.log
+
+# Test files
+check.php
+clear_cache.php
