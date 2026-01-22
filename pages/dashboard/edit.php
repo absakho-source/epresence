@@ -81,6 +81,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "La date est obligatoire.";
         }
 
+        if (empty($formData['event_time'])) {
+            $errors[] = "L'heure de début est obligatoire.";
+        }
+
+        if (empty($formData['location'])) {
+            $errors[] = "Le lieu est obligatoire.";
+        }
+
         if (empty($errors)) {
             try {
                 $stmt = db()->prepare("
@@ -94,14 +102,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         location = ?
                     WHERE id = ?
                 ");
+                $autoCloseValue = $formData['auto_close'] ? 't' : 'f';
                 $stmt->execute([
                     $formData['title'],
                     $formData['description'] ?: null,
                     $formData['event_date'],
-                    $formData['event_time'] ?: null,
+                    $formData['event_time'],
                     $formData['end_time'] ?: null,
-                    $formData['auto_close'] ? true : false,
-                    $formData['location'] ?: null,
+                    $autoCloseValue,
+                    $formData['location'],
                     $sheetId
                 ]);
 
@@ -207,9 +216,9 @@ require_once __DIR__ . '/../../includes/header.php';
                                    value="<?= sanitize($formData['event_date']) ?>" required>
                         </div>
                         <div class="col-md-4 mb-3">
-                            <label for="event_time" class="form-label">Heure de début</label>
+                            <label for="event_time" class="form-label">Heure de début <span class="text-danger">*</span></label>
                             <input type="time" class="form-control" id="event_time" name="event_time"
-                                   value="<?= sanitize($formData['event_time']) ?>">
+                                   value="<?= sanitize($formData['event_time']) ?>" required>
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="end_time" class="form-label">Heure de fin</label>
@@ -230,9 +239,9 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
 
                     <div class="mb-4">
-                        <label for="location" class="form-label">Lieu</label>
+                        <label for="location" class="form-label">Lieu <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="location" name="location"
-                               value="<?= sanitize($formData['location']) ?>">
+                               value="<?= sanitize($formData['location']) ?>" required>
                     </div>
 
                     <!-- Documents existants -->
