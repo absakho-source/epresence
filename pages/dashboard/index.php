@@ -11,15 +11,63 @@ $userId = getCurrentUserId();
 $currentUser = getCurrentUser();
 $isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
 
-// Obtenir les structures de la même catégorie si super-utilisateur
+// Vérifier si c'est un super-utilisateur de la Direction générale (voit TOUT)
+$isDGSuperAdmin = false;
 $structureCodes = array();
 if ($isStructureAdmin) {
-    $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+    $userCategory = getStructureCategory($currentUser['structure']);
+    $isDGSuperAdmin = ($userCategory === 'Direction générale');
+    if (!$isDGSuperAdmin) {
+        $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+    }
 }
 
 // Récupérer les statistiques
-if ($isStructureAdmin && count($structureCodes) > 0) {
-    // Super-utilisateur: voir toutes les feuilles de la structure
+if ($isStructureAdmin && $isDGSuperAdmin) {
+    // Super-utilisateur Direction générale: voir TOUTES les feuilles
+
+    // Stats pour ses propres feuilles
+    $statsQuery = db()->prepare("
+        SELECT
+            COUNT(*) as total_sheets,
+            COUNT(CASE WHEN status = 'active' THEN 1 END) as active_sheets,
+            COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_sheets,
+            (SELECT COUNT(*) FROM signatures s
+             JOIN sheets sh ON s.sheet_id = sh.id
+             WHERE sh.user_id = ?) as total_signatures
+        FROM sheets
+        WHERE user_id = ?
+    ");
+    $statsQuery->execute([$userId, $userId]);
+    $stats = $statsQuery->fetch();
+
+    // Stats pour TOUTE la DGPPE
+    $structureStatsQuery = db()->query("
+        SELECT
+            COUNT(*) as structure_sheets,
+            (SELECT COUNT(*) FROM signatures) as structure_signatures
+        FROM sheets
+    ");
+    $structureStats = $structureStatsQuery->fetch();
+
+    // Récupérer TOUTES les feuilles
+    $sheetsQuery = db()->prepare("
+        SELECT s.*,
+               u.first_name as creator_first_name,
+               u.last_name as creator_last_name,
+               u.structure as creator_structure,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
+        FROM sheets s
+        JOIN users u ON s.user_id = u.id
+        ORDER BY s.created_at DESC
+        LIMIT 50
+    ");
+    $sheetsQuery->execute([$userId]);
+    $sheets = $sheetsQuery->fetchAll();
+
+} elseif ($isStructureAdmin && count($structureCodes) > 0) {
+    // Super-utilisateur de structure: voir les feuilles de sa catégorie
     $placeholders = implode(',', array_fill(0, count($structureCodes), '?'));
 
     // Stats pour ses propres feuilles
@@ -148,27 +196,33 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <?php if ($isStructureAdmin && $structureStats): ?>
 <!-- Statistiques de la structure (super-utilisateur) -->
-<div class="alert alert-warning mb-4">
+<div class="alert <?= $isDGSuperAdmin ? 'alert-danger' : 'alert-warning' ?> mb-4">
     <div class="d-flex align-items-center">
         <i class="bi bi-star-fill me-2"></i>
-        <strong>Mode Super-utilisateur</strong>
-        <span class="ms-2">- Vous voyez toutes les feuilles de votre structure: <?= sanitize(getStructureCategory($currentUser['structure'])) ?></span>
+        <strong>Mode Super-utilisateur<?= $isDGSuperAdmin ? ' - Direction générale' : '' ?></strong>
+        <span class="ms-2">
+            <?php if ($isDGSuperAdmin): ?>
+                - Vous voyez <strong>TOUTES</strong> les feuilles de la DGPPE
+            <?php else: ?>
+                - Vous voyez toutes les feuilles de: <?= sanitize(getStructureCategory($currentUser['structure'])) ?>
+            <?php endif; ?>
+        </span>
     </div>
 </div>
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card h-100 border-warning">
+        <div class="card h-100 <?= $isDGSuperAdmin ? 'border-danger' : 'border-warning' ?>">
             <div class="card-body dashboard-stat">
-                <div class="stat-number text-warning"><?= $structureStats['structure_sheets'] ?></div>
-                <div class="stat-label">Feuilles de la structure</div>
+                <div class="stat-number <?= $isDGSuperAdmin ? 'text-danger' : 'text-warning' ?>"><?= $structureStats['structure_sheets'] ?></div>
+                <div class="stat-label"><?= $isDGSuperAdmin ? 'Toutes les feuilles DGPPE' : 'Feuilles de la structure' ?></div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100 border-warning">
+        <div class="card h-100 <?= $isDGSuperAdmin ? 'border-danger' : 'border-warning' ?>">
             <div class="card-body dashboard-stat">
-                <div class="stat-number text-warning"><?= $structureStats['structure_signatures'] ?></div>
-                <div class="stat-label">Signatures structure</div>
+                <div class="stat-number <?= $isDGSuperAdmin ? 'text-danger' : 'text-warning' ?>"><?= $structureStats['structure_signatures'] ?></div>
+                <div class="stat-label"><?= $isDGSuperAdmin ? 'Toutes les signatures' : 'Signatures structure' ?></div>
             </div>
         </div>
     </div>
@@ -180,7 +234,9 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-list-ul me-2"></i>
-            <?php if ($isStructureAdmin): ?>
+            <?php if ($isDGSuperAdmin): ?>
+                Toutes les feuilles DGPPE
+            <?php elseif ($isStructureAdmin): ?>
                 Feuilles de la structure
             <?php else: ?>
                 Mes feuilles d'émargement

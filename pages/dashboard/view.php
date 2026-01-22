@@ -30,15 +30,23 @@ if (!$sheet) {
 // Vérifier les droits d'accès
 $isOwner = ($sheet['user_id'] == getCurrentUserId());
 $canViewAsStructureAdmin = false;
+$canViewAsDGAdmin = false;
 $canViewAsGlobalAdmin = isAdmin();
 
 if (!$isOwner && $isStructureAdmin) {
-    // Vérifier si le créateur appartient à la même catégorie de structure
-    $structureCodes = getStructureCodesInCategory($currentUser['structure']);
-    $canViewAsStructureAdmin = in_array($sheet['creator_structure'], $structureCodes);
+    $userCategory = getStructureCategory($currentUser['structure']);
+
+    // Super-utilisateur Direction générale: peut voir TOUT
+    if ($userCategory === 'Direction générale') {
+        $canViewAsDGAdmin = true;
+    } else {
+        // Vérifier si le créateur appartient à la même catégorie de structure
+        $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+        $canViewAsStructureAdmin = in_array($sheet['creator_structure'], $structureCodes);
+    }
 }
 
-if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsGlobalAdmin) {
+if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsDGAdmin && !$canViewAsGlobalAdmin) {
     setFlash('error', 'Vous n\'avez pas accès à cette feuille.');
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
@@ -109,11 +117,11 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php if (!$isOwner): ?>
-<div class="alert alert-warning mb-4">
+<div class="alert <?= $canViewAsDGAdmin ? 'alert-danger' : 'alert-warning' ?> mb-4">
     <div class="d-flex align-items-center">
-        <i class="bi bi-info-circle me-2"></i>
+        <i class="bi bi-<?= $canViewAsDGAdmin ? 'shield-lock' : 'info-circle' ?> me-2"></i>
         <div>
-            <strong>Consultation en mode super-utilisateur</strong><br>
+            <strong>Consultation en mode <?= $canViewAsDGAdmin ? 'Direction générale' : 'super-utilisateur' ?></strong><br>
             <small>Cette feuille a été créée par <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
             <?php if (!empty($sheet['creator_structure'])): ?>
                 (<?= sanitize(getStructureName($sheet['creator_structure'])) ?>)
