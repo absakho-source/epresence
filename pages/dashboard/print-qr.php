@@ -38,6 +38,8 @@ $signUrl = getSheetUrl($sheet['unique_code']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QR Code - <?= sanitize($sheet['title']) ?></title>
+    <link rel="icon" type="image/png" href="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>">
+    <link rel="apple-touch-icon" href="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>">
     <style>
         * {
             margin: 0;

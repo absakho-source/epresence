@@ -20,6 +20,10 @@ $bodyClass = $bodyClass ?? '';
     <meta name="description" content="<?= sanitize($pageDescription) ?>">
     <title><?= sanitize($pageTitle) ?> | <?= SITE_NAME ?></title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>">
+    <link rel="apple-touch-icon" href="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>">
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
