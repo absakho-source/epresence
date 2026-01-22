@@ -157,6 +157,23 @@ $bodyClass = 'sign-page';
             font-size: 0.8rem;
             padding: 4px 10px;
         }
+        /* Phone input styling */
+        .phone-country-code {
+            flex-shrink: 0;
+            font-size: 0.9rem;
+            padding-left: 8px;
+            padding-right: 24px;
+        }
+        .phone-input {
+            flex: 1;
+            min-width: 0;
+        }
+        @media (max-width: 400px) {
+            .phone-country-code {
+                max-width: 95px !important;
+                font-size: 0.85rem;
+            }
+        }
     </style>
 </head>
 <body class="sign-page">
@@ -281,13 +298,37 @@ $bodyClass = 'sign-page';
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-6 mb-3">
+                                    <div class="col-12 col-sm-6 mb-3">
                                         <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                        <input type="tel" class="form-control" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
+                                        <div class="input-group">
+                                            <select class="form-select phone-country-code" id="phone_country" style="max-width: 110px;">
+                                                <option value="+221" data-format="XX XXX XX XX" data-digits="9" selected>+221</option>
+                                                <option value="+33" data-format="X XX XX XX XX" data-digits="9">+33</option>
+                                                <option value="+225" data-format="XX XX XX XX XX" data-digits="10">+225</option>
+                                                <option value="+223" data-format="XX XX XX XX" data-digits="8">+223</option>
+                                                <option value="+222" data-format="XX XX XX XX" data-digits="8">+222</option>
+                                                <option value="+224" data-format="XXX XX XX XX" data-digits="9">+224</option>
+                                                <option value="+220" data-format="XXX XX XX" data-digits="7">+220</option>
+                                                <option value="+245" data-format="XXX XXXX" data-digits="7">+245</option>
+                                            </select>
+                                            <input type="tel" class="form-control phone-input" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
+                                        </div>
                                     </div>
-                                    <div class="col-6 mb-3">
+                                    <div class="col-12 col-sm-6 mb-3">
                                         <label for="phone_secondary" class="form-label">Tél. secondaire</label>
-                                        <input type="tel" class="form-control" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
+                                        <div class="input-group">
+                                            <select class="form-select phone-country-code" id="phone_secondary_country" style="max-width: 110px;">
+                                                <option value="+221" data-format="XX XXX XX XX" data-digits="9" selected>+221</option>
+                                                <option value="+33" data-format="X XX XX XX XX" data-digits="9">+33</option>
+                                                <option value="+225" data-format="XX XX XX XX XX" data-digits="10">+225</option>
+                                                <option value="+223" data-format="XX XX XX XX" data-digits="8">+223</option>
+                                                <option value="+222" data-format="XX XX XX XX" data-digits="8">+222</option>
+                                                <option value="+224" data-format="XXX XX XX XX" data-digits="9">+224</option>
+                                                <option value="+220" data-format="XXX XX XX" data-digits="7">+220</option>
+                                                <option value="+245" data-format="XXX XXXX" data-digits="7">+245</option>
+                                            </select>
+                                            <input type="tel" class="form-control phone-input" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -334,6 +375,90 @@ $bodyClass = 'sign-page';
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Phone number formatting
+        const phoneFormats = {
+            '+221': { format: 'XX XXX XX XX', digits: 9, placeholder: '77 123 45 67' },      // Sénégal
+            '+33':  { format: 'X XX XX XX XX', digits: 9, placeholder: '6 12 34 56 78' },    // France
+            '+225': { format: 'XX XX XX XX XX', digits: 10, placeholder: '07 12 34 56 78' }, // Côte d'Ivoire
+            '+223': { format: 'XX XX XX XX', digits: 8, placeholder: '70 12 34 56' },        // Mali
+            '+222': { format: 'XX XX XX XX', digits: 8, placeholder: '22 12 34 56' },        // Mauritanie
+            '+224': { format: 'XXX XX XX XX', digits: 9, placeholder: '620 12 34 56' },      // Guinée
+            '+220': { format: 'XXX XX XX', digits: 7, placeholder: '301 23 45' },            // Gambie
+            '+245': { format: 'XXX XXXX', digits: 7, placeholder: '955 1234' }               // Guinée-Bissau
+        };
+
+        function formatPhoneNumber(value, countryCode) {
+            // Remove all non-digits
+            const digits = value.replace(/\D/g, '');
+            const config = phoneFormats[countryCode] || phoneFormats['+221'];
+            const format = config.format;
+
+            let result = '';
+            let digitIndex = 0;
+
+            for (let i = 0; i < format.length && digitIndex < digits.length; i++) {
+                if (format[i] === 'X') {
+                    result += digits[digitIndex];
+                    digitIndex++;
+                } else {
+                    result += format[i];
+                    // Only add space if we have more digits to add
+                    if (digitIndex < digits.length) {
+                        // Skip adding space if next format char is also a space
+                    }
+                }
+            }
+
+            return result.trim();
+        }
+
+        function updatePlaceholder(input, select) {
+            const countryCode = select.value;
+            const config = phoneFormats[countryCode] || phoneFormats['+221'];
+            input.placeholder = config.placeholder;
+        }
+
+        // Apply formatting to all phone inputs
+        document.querySelectorAll('.phone-input').forEach(input => {
+            const select = input.closest('.input-group').querySelector('.phone-country-code');
+
+            // Update placeholder when country changes
+            select.addEventListener('change', function() {
+                updatePlaceholder(input, select);
+                // Reformat existing value
+                if (input.value) {
+                    input.value = formatPhoneNumber(input.value, select.value);
+                }
+            });
+
+            // Format on input
+            input.addEventListener('input', function(e) {
+                const cursorPos = this.selectionStart;
+                const oldLength = this.value.length;
+                const countryCode = select.value;
+                const config = phoneFormats[countryCode] || phoneFormats['+221'];
+
+                // Limit digits
+                const digits = this.value.replace(/\D/g, '').slice(0, config.digits);
+                this.value = formatPhoneNumber(digits, countryCode);
+
+                // Adjust cursor position
+                const newLength = this.value.length;
+                const diff = newLength - oldLength;
+                this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            });
+
+            // Format on paste
+            input.addEventListener('paste', function(e) {
+                e.preventDefault();
+                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
+                const countryCode = select.value;
+                const config = phoneFormats[countryCode] || phoneFormats['+221'];
+                const digits = pastedText.replace(/\D/g, '').slice(0, config.digits);
+                this.value = formatPhoneNumber(digits, countryCode);
+            });
+        });
+
         const canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
 
@@ -385,6 +510,19 @@ $bodyClass = 'sign-page';
 
             // Set signature data
             document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
+
+            // Prepend country codes to phone numbers
+            const phoneInput = document.getElementById('phone');
+            const phoneCountry = document.getElementById('phone_country');
+            const phoneSecondary = document.getElementById('phone_secondary');
+            const phoneSecondaryCountry = document.getElementById('phone_secondary_country');
+
+            if (phoneInput.value) {
+                phoneInput.value = phoneCountry.value + ' ' + phoneInput.value;
+            }
+            if (phoneSecondary.value) {
+                phoneSecondary.value = phoneSecondaryCountry.value + ' ' + phoneSecondary.value;
+            }
 
             // Disable button
             submitBtn.disabled = true;

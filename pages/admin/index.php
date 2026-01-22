@@ -161,7 +161,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="card h-100" style="border-color: #fd7e14;">
             <div class="card-body dashboard-stat">
                 <div class="stat-number" style="color: #fd7e14;"><?= $globalStats['super_users'] ?></div>
-                <div class="stat-label">Super-users</div>
+                <div class="stat-label">Super utilisateurs</div>
             </div>
         </div>
     </div>
@@ -315,7 +315,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <small><?= $user['structure'] ? sanitize(getStructureName($user['structure'])) : '-' ?></small>
                                         <?php if (!empty($user['is_structure_admin']) && $user['structure']): ?>
                                             <br><span class="badge <?= $isDGUser ? 'bg-danger' : 'bg-warning text-dark' ?>" title="<?= $isDGUser ? 'Voit TOUTES les feuilles de la DGPPE' : 'Voit les feuilles de: ' . sanitize($userCategory) ?>">
-                                                <i class="bi bi-star-fill me-1"></i><?= $isDGUser ? 'DG' : 'Super' ?>
+                                                <i class="bi bi-star-fill me-1"></i><?= $isDGUser ? 'DG' : 'Super utilisateur' ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
