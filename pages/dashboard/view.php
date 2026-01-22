@@ -301,8 +301,8 @@ require_once __DIR__ . '/../../includes/header.php';
                             <tr>
                                 <th style="width: 30px;">#</th>
                                 <th>Nom complet</th>
-                                <th class="d-none d-md-table-cell">Fonction</th>
-                                <th class="d-none d-md-table-cell">Structure</th>
+                                <th>Fonction</th>
+                                <th>Structure</th>
                                 <th>Contact</th>
                                 <th style="width: 80px;">Signature</th>
                             </tr>
@@ -313,12 +313,9 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <td><?= $index + 1 ?></td>
                                     <td>
                                         <strong><?= sanitize($sig['first_name']) ?> <?= sanitize($sig['last_name']) ?></strong>
-                                        <?php if ($sig['function_title']): ?>
-                                            <br class="d-md-none"><small class="text-muted d-md-none"><?= sanitize($sig['function_title']) ?></small>
-                                        <?php endif; ?>
                                     </td>
-                                    <td class="d-none d-md-table-cell"><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
-                                    <td class="d-none d-md-table-cell"><?= $sig['structure'] ? sanitize($sig['structure']) : '-' ?></td>
+                                    <td><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
+                                    <td><?= $sig['structure'] ? sanitize($sig['structure']) : '-' ?></td>
                                     <td>
                                         <small><?= sanitize($sig['email']) ?></small>
                                         <?php if ($sig['phone']): ?>

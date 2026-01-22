@@ -53,42 +53,42 @@ $signUrl = getSheetUrl($sheet['unique_code']);
 
         .print-container {
             width: 210mm;
-            min-height: 297mm;
+            max-height: 297mm;
             margin: 0 auto;
             background: white;
-            padding: 15mm;
+            padding: 8mm 12mm;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
 
         /* En-tête officiel */
         .official-header {
             text-align: center;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #00703c;
-            margin-bottom: 20px;
-        }
-
-        .official-header .logo {
-            height: 60px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #00703c;
             margin-bottom: 10px;
         }
 
+        .official-header .logo {
+            height: 45px;
+            margin-bottom: 5px;
+        }
+
         .official-header .ministry {
-            font-size: 11px;
+            font-size: 9px;
             color: #666;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .official-header .org {
-            font-size: 13px;
+            font-size: 11px;
             color: #333;
             font-weight: 600;
-            margin: 5px 0;
+            margin: 3px 0;
         }
 
         .official-header .platform {
-            font-size: 16px;
+            font-size: 13px;
             color: #00703c;
             font-weight: 700;
         }
@@ -96,44 +96,44 @@ $signUrl = getSheetUrl($sheet['unique_code']);
         /* Titre de la réunion */
         .meeting-title {
             text-align: center;
-            margin: 25px 0;
+            margin: 10px 0;
         }
 
         .meeting-title h1 {
-            font-size: 24px;
+            font-size: 18px;
             color: #00703c;
-            margin-bottom: 10px;
+            margin-bottom: 3px;
             text-transform: uppercase;
         }
 
         .meeting-title .subtitle {
-            font-size: 14px;
+            font-size: 11px;
             color: #666;
         }
 
         /* Section QR Code */
         .qr-section {
             text-align: center;
-            margin: 30px 0;
-            padding: 25px;
+            margin: 12px 0;
+            padding: 12px;
             background: #f8f9fa;
-            border-radius: 15px;
+            border-radius: 10px;
             border: 2px dashed #00703c;
         }
 
         .qr-section h2 {
             color: #00703c;
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 14px;
+            margin-bottom: 8px;
         }
 
         .qr-code-box {
             display: inline-block;
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border: 3px solid #00703c;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 2px solid #00703c;
         }
 
         .qr-code-box canvas,
@@ -142,57 +142,57 @@ $signUrl = getSheetUrl($sheet['unique_code']);
         }
 
         .scan-instruction {
-            margin-top: 20px;
-            font-size: 16px;
+            margin-top: 10px;
+            font-size: 12px;
             color: #333;
         }
 
         .scan-instruction i {
-            display: block;
-            font-size: 28px;
+            display: inline;
+            font-size: 16px;
             color: #00703c;
-            margin-bottom: 10px;
+            margin-right: 5px;
         }
 
         /* Informations de la réunion */
         .meeting-info {
             background: #fff;
             border: 1px solid #ddd;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 25px 0;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 12px 0;
         }
 
         .meeting-info h3 {
-            font-size: 14px;
+            font-size: 11px;
             color: #00703c;
             text-transform: uppercase;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #00703c;
-            padding-bottom: 8px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #00703c;
+            padding-bottom: 4px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
         }
 
         .info-item {
-            padding: 10px;
+            padding: 6px 8px;
             background: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 4px;
         }
 
         .info-item .label {
-            font-size: 11px;
+            font-size: 9px;
             color: #666;
             text-transform: uppercase;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .info-item .value {
-            font-size: 14px;
+            font-size: 11px;
             color: #333;
             font-weight: 600;
         }
@@ -204,63 +204,65 @@ $signUrl = getSheetUrl($sheet['unique_code']);
         /* URL alternative */
         .url-section {
             text-align: center;
-            margin: 25px 0;
-            padding: 15px;
+            margin: 10px 0;
+            padding: 8px;
             background: #e8f5e9;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
         .url-section .label {
-            font-size: 12px;
+            font-size: 10px;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
 
         .url-section .url {
             font-family: monospace;
-            font-size: 11px;
+            font-size: 9px;
             color: #00703c;
             word-break: break-all;
             background: white;
-            padding: 8px 15px;
-            border-radius: 5px;
+            padding: 5px 10px;
+            border-radius: 4px;
             display: inline-block;
             border: 1px solid #00703c;
         }
 
         /* Instructions */
         .instructions {
-            margin: 25px 0;
-            padding: 15px;
+            margin: 10px 0;
+            padding: 10px;
             background: #fff3cd;
-            border-radius: 8px;
-            border-left: 4px solid #ffc107;
+            border-radius: 6px;
+            border-left: 3px solid #ffc107;
         }
 
         .instructions h4 {
-            font-size: 13px;
+            font-size: 11px;
             color: #856404;
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
 
         .instructions ol {
-            font-size: 12px;
+            font-size: 10px;
             color: #856404;
-            padding-left: 20px;
+            padding-left: 18px;
             margin: 0;
+            columns: 2;
+            column-gap: 20px;
         }
 
         .instructions li {
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         /* Pied de page */
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
+            margin-top: 10px;
+            padding-top: 8px;
             border-top: 1px solid #ddd;
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             color: #999;
         }
 
@@ -309,8 +311,9 @@ $signUrl = getSheetUrl($sheet['unique_code']);
 
             .print-container {
                 box-shadow: none;
-                padding: 10mm;
+                padding: 5mm 8mm;
                 width: 100%;
+                max-height: none;
             }
 
             .action-buttons {
@@ -324,7 +327,7 @@ $signUrl = getSheetUrl($sheet['unique_code']);
 
         @page {
             size: A4;
-            margin: 10mm;
+            margin: 5mm;
         }
     </style>
 </head>
@@ -426,8 +429,8 @@ $signUrl = getSheetUrl($sheet['unique_code']);
         // Générer le QR code
         new QRCode(document.getElementById("qrcode"), {
             text: "<?= $signUrl ?>",
-            width: 200,
-            height: 200,
+            width: 150,
+            height: 150,
             colorDark: "#00703c",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
