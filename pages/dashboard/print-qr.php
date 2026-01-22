@@ -11,7 +11,7 @@ requireLogin();
 $sheetId = intval($_GET['id'] ?? 0);
 
 // Récupérer la feuille
-$stmt = db()->prepare("SELECT s.*, u.first_name as creator_first_name, u.last_name as creator_last_name
+$stmt = db()->prepare("SELECT s.*, u.first_name as creator_first_name, u.last_name as creator_last_name, u.structure as creator_structure
                        FROM sheets s
                        JOIN users u ON s.user_id = u.id
                        WHERE s.id = ?");
@@ -387,7 +387,7 @@ $signUrl = getSheetUrl($sheet['unique_code']);
                 </div>
                 <div class="info-item">
                     <div class="label">Organisateur</div>
-                    <div class="value"><?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?></div>
+                    <div class="value"><?= $sheet['creator_structure'] ? sanitize(getStructureName($sheet['creator_structure'])) : sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?></div>
                 </div>
                 <?php if ($sheet['description']): ?>
                 <div class="info-item full-width">
