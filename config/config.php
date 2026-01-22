@@ -83,19 +83,8 @@ if (session_status() === PHP_SESSION_NONE) {
         if (is_dir($sessionPath) && is_writable($sessionPath)) {
             session_save_path($sessionPath);
         }
-    } else {
-        // En local, utiliser un répertoire dans le projet
-        $sessionPath = ini_get('session.save_path');
-        if (empty($sessionPath) || !is_dir($sessionPath) || !is_writable($sessionPath)) {
-            $localSessionPath = BASE_PATH . '/sessions';
-            if (!is_dir($localSessionPath)) {
-                @mkdir($localSessionPath, 0700, true);
-            }
-            if (is_dir($localSessionPath) && is_writable($localSessionPath)) {
-                session_save_path($localSessionPath);
-            }
-        }
     }
+    // Note: sur hébergement mutualisé (dgppe.sn), utiliser le chemin par défaut de PHP
 
     // Configuration des cookies de session pour mobile
     $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
