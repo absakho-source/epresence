@@ -2,11 +2,6 @@
 <IfModule mod_php.c>
     # Désactiver le cache OPcache
     php_flag opcache.enable 0
-    # Debug
-    php_flag display_errors on
-    php_value error_reporting 32767
-    # Configurer le chemin des sessions dans ce répertoire
-    php_value session.save_path "/services3/webpages/d/g/dgppe.sn/public/maturation/epresence/sessions"
 </IfModule>
 
 # Empêcher la mise en cache des fichiers PHP

@@ -11,7 +11,7 @@ define('DEBUG_MODE', getenv('DEBUG_MODE') === 'false' ? false : true);
 define('SITE_NAME', 'e-Présence DGPPE');
 // Détecte automatiquement l'URL sur Render ou utilise la valeur par défaut
 $renderUrl = getenv('RENDER_EXTERNAL_URL');
-$siteUrl = getenv('SITE_URL') ?: ($renderUrl ? $renderUrl : 'https://dgppe.sn/maturation/epresence');
+$siteUrl = getenv('SITE_URL') ?: ($renderUrl ? $renderUrl : 'https://epresence.onrender.com');
 define('SITE_URL', rtrim($siteUrl, '/'));
 define('SITE_DESCRIPTION', 'Système d\'émargement électronique - Direction Générale de la Planification et des Politiques Économiques');
 
@@ -84,7 +84,6 @@ if (session_status() === PHP_SESSION_NONE) {
             session_save_path($sessionPath);
         }
     }
-    // Note: sur hébergement mutualisé (dgppe.sn), utiliser le chemin par défaut de PHP
 
     // Configuration des cookies de session pour mobile
     $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
