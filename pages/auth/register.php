@@ -98,15 +98,14 @@ require_once __DIR__ . '/../../includes/header.php';
 
                     <div class="mb-3">
                         <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="email_prefix" name="email_prefix"
-                                   value="<?= sanitize(str_replace('@' . ALLOWED_EMAIL_DOMAIN, '', $email)) ?>"
-                                   placeholder="prenom.nom"
-                                   required>
-                            <span class="input-group-text">@<?= ALLOWED_EMAIL_DOMAIN ?></span>
+                        <input type="email" class="form-control" id="email" name="email"
+                               value="<?= sanitize($email) ?>"
+                               placeholder="prenom.nom@<?= ALLOWED_EMAIL_DOMAIN ?>"
+                               required>
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Seules les adresses <strong>@<?= ALLOWED_EMAIL_DOMAIN ?></strong> sont acceptées.
                         </div>
-                        <input type="hidden" id="email" name="email" value="<?= sanitize($email) ?>">
-                        <div class="form-text">Entrez uniquement la partie avant @</div>
                     </div>
 
                     <div class="mb-3">
@@ -154,21 +153,22 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Mettre à jour le champ email caché avec le préfixe + domaine
-var emailPrefix = document.getElementById('email_prefix');
-var emailHidden = document.getElementById('email');
+// Validation en temps réel du domaine email
+document.getElementById('email').addEventListener('input', function() {
+    var email = this.value.trim();
+    var domain = '@<?= ALLOWED_EMAIL_DOMAIN ?>';
+    var isValid = email.endsWith(domain);
 
-function updateEmail() {
-    var prefix = emailPrefix.value.trim().replace(/@.*$/, ''); // Enlever tout @ et ce qui suit
-    emailPrefix.value = prefix;
-    emailHidden.value = prefix ? prefix + '@<?= ALLOWED_EMAIL_DOMAIN ?>' : '';
-}
-
-emailPrefix.addEventListener('input', updateEmail);
-emailPrefix.addEventListener('blur', updateEmail);
-
-// Initialiser au chargement
-updateEmail();
+    if (email && !isValid) {
+        this.classList.add('is-invalid');
+        this.classList.remove('is-valid');
+    } else if (email && isValid) {
+        this.classList.add('is-valid');
+        this.classList.remove('is-invalid');
+    } else {
+        this.classList.remove('is-valid', 'is-invalid');
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
