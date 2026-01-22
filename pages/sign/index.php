@@ -286,20 +286,17 @@ $bodyClass = 'sign-page';
 
                                 <div class="row">
                                     <div class="col-12 col-sm-6 mb-3">
-                                        <label for="structure_select" class="form-label">Structure</label>
-                                        <select class="form-select" id="structure_select" name="structure_select">
-                                            <option value="">-- Sélectionnez --</option>
+                                        <label for="structure" class="form-label">Structure</label>
+                                        <input type="text" class="form-control" id="structure" name="structure"
+                                               list="structures-list" placeholder="Tapez pour rechercher..."
+                                               autocomplete="organization">
+                                        <datalist id="structures-list">
                                             <?php foreach (getStructuresGrouped() as $category => $structures): ?>
-                                            <optgroup label="<?= sanitize($category) ?>">
                                                 <?php foreach ($structures as $code => $name): ?>
-                                                <option value="<?= sanitize($name) ?>"><?= sanitize($name) ?></option>
+                                            <option value="<?= sanitize($name) ?>">
                                                 <?php endforeach; ?>
-                                            </optgroup>
                                             <?php endforeach; ?>
-                                            <option value="__autre__">➕ Autre structure...</option>
-                                        </select>
-                                        <input type="hidden" name="structure" id="structure" value="">
-                                        <input type="text" class="form-control mt-2 d-none" id="structure_custom" placeholder="Nom de votre structure" autocomplete="organization">
+                                        </datalist>
                                     </div>
                                     <div class="col-12 col-sm-6 mb-3">
                                         <label for="function_title" class="form-label">Fonction</label>
@@ -367,30 +364,6 @@ $bodyClass = 'sign-page';
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Gestion du select de structure
-        const structureSelect = document.getElementById('structure_select');
-        const structureHidden = document.getElementById('structure');
-        const structureCustom = document.getElementById('structure_custom');
-
-        if (structureSelect) {
-            structureSelect.addEventListener('change', function() {
-                if (this.value === '__autre__') {
-                    structureCustom.classList.remove('d-none');
-                    structureCustom.focus();
-                    structureHidden.value = '';
-                } else {
-                    structureCustom.classList.add('d-none');
-                    structureCustom.value = '';
-                    structureHidden.value = this.value;
-                }
-            });
-
-            // Mettre à jour la valeur cachée quand on tape dans le champ personnalisé
-            structureCustom.addEventListener('input', function() {
-                structureHidden.value = this.value;
-            });
-        }
-
         // S'assurer que l'indicatif commence par +
         document.querySelectorAll('.phone-country-code').forEach(input => {
             input.addEventListener('input', function() {
@@ -399,33 +372,78 @@ $bodyClass = 'sign-page';
                     val = '+' + val.replace(/\+/g, '');
                 }
                 this.value = val;
+
+                // Re-formater le numéro associé quand l'indicatif change
+                const phoneInputId = this.id.replace('_country', '');
+                const phoneInput = document.getElementById(phoneInputId);
+                if (phoneInput && phoneInput.value) {
+                    const formatted = formatPhoneNumber(phoneInput.value, val);
+                    phoneInput.value = formatted;
+                }
             });
         });
 
-        // Formatage automatique des numéros de téléphone (Sénégal: XX XXX XX XX)
-        function formatPhoneNumber(value) {
+        // Formats par pays (indicatif => {maxDigits, format})
+        const phoneFormats = {
+            '+221': { maxDigits: 9, format: [2, 3, 2, 2] },       // Sénégal: XX XXX XX XX
+            '+33': { maxDigits: 9, format: [1, 2, 2, 2, 2] },     // France: X XX XX XX XX
+            '+1': { maxDigits: 10, format: [3, 3, 4] },           // USA/Canada: XXX XXX XXXX
+            '+225': { maxDigits: 10, format: [2, 2, 2, 2, 2] },   // Côte d'Ivoire: XX XX XX XX XX
+            '+223': { maxDigits: 8, format: [2, 2, 2, 2] },       // Mali: XX XX XX XX
+            '+222': { maxDigits: 8, format: [2, 2, 2, 2] },       // Mauritanie: XX XX XX XX
+            '+212': { maxDigits: 9, format: [1, 2, 2, 2, 2] },    // Maroc: X XX XX XX XX
+            '+216': { maxDigits: 8, format: [2, 3, 3] },          // Tunisie: XX XXX XXX
+            '+224': { maxDigits: 9, format: [3, 2, 2, 2] },       // Guinée: XXX XX XX XX
+            '+237': { maxDigits: 9, format: [3, 2, 2, 2] },       // Cameroun: XXX XX XX XX
+            '+229': { maxDigits: 8, format: [2, 2, 2, 2] },       // Bénin: XX XX XX XX
+            '+228': { maxDigits: 8, format: [2, 2, 2, 2] },       // Togo: XX XX XX XX
+            '+226': { maxDigits: 8, format: [2, 2, 2, 2] },       // Burkina: XX XX XX XX
+            '+227': { maxDigits: 8, format: [2, 2, 2, 2] },       // Niger: XX XX XX XX
+        };
+
+        // Formatage automatique des numéros selon l'indicatif pays
+        function formatPhoneNumber(value, countryCode) {
             // Supprimer tout sauf les chiffres
             let digits = value.replace(/\D/g, '');
 
-            // Limiter à 9 chiffres pour le Sénégal
-            digits = digits.substring(0, 9);
+            // Obtenir le format pour ce pays (ou format par défaut)
+            const formatConfig = phoneFormats[countryCode] || { maxDigits: 12, format: null };
 
-            // Appliquer le format XX XXX XX XX
+            // Limiter les chiffres
+            digits = digits.substring(0, formatConfig.maxDigits);
+
+            // Si pas de format défini, retourner les chiffres sans formatage
+            if (!formatConfig.format) {
+                return digits;
+            }
+
+            // Appliquer le format avec espaces
             let formatted = '';
-            if (digits.length > 0) formatted += digits.substring(0, 2);
-            if (digits.length > 2) formatted += ' ' + digits.substring(2, 5);
-            if (digits.length > 5) formatted += ' ' + digits.substring(5, 7);
-            if (digits.length > 7) formatted += ' ' + digits.substring(7, 9);
+            let pos = 0;
+            for (let i = 0; i < formatConfig.format.length && pos < digits.length; i++) {
+                const chunk = digits.substring(pos, pos + formatConfig.format[i]);
+                if (chunk) {
+                    if (formatted) formatted += ' ';
+                    formatted += chunk;
+                    pos += formatConfig.format[i];
+                }
+            }
 
             return formatted;
         }
 
+        // Appliquer le formatage aux champs téléphone
         document.querySelectorAll('.phone-input').forEach(input => {
             input.addEventListener('input', function(e) {
                 const cursorPos = this.selectionStart;
                 const oldLength = this.value.length;
 
-                this.value = formatPhoneNumber(this.value);
+                // Trouver l'indicatif pays associé
+                const countryInputId = this.id + '_country';
+                const countryInput = document.getElementById(countryInputId);
+                const countryCode = countryInput ? countryInput.value : '+221';
+
+                this.value = formatPhoneNumber(this.value, countryCode);
 
                 // Ajuster la position du curseur
                 const newLength = this.value.length;
