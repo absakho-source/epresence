@@ -402,6 +402,38 @@ $bodyClass = 'sign-page';
             });
         });
 
+        // Formatage automatique des numéros de téléphone (Sénégal: XX XXX XX XX)
+        function formatPhoneNumber(value) {
+            // Supprimer tout sauf les chiffres
+            let digits = value.replace(/\D/g, '');
+
+            // Limiter à 9 chiffres pour le Sénégal
+            digits = digits.substring(0, 9);
+
+            // Appliquer le format XX XXX XX XX
+            let formatted = '';
+            if (digits.length > 0) formatted += digits.substring(0, 2);
+            if (digits.length > 2) formatted += ' ' + digits.substring(2, 5);
+            if (digits.length > 5) formatted += ' ' + digits.substring(5, 7);
+            if (digits.length > 7) formatted += ' ' + digits.substring(7, 9);
+
+            return formatted;
+        }
+
+        document.querySelectorAll('.phone-input').forEach(input => {
+            input.addEventListener('input', function(e) {
+                const cursorPos = this.selectionStart;
+                const oldLength = this.value.length;
+
+                this.value = formatPhoneNumber(this.value);
+
+                // Ajuster la position du curseur
+                const newLength = this.value.length;
+                const newPos = cursorPos + (newLength - oldLength);
+                this.setSelectionRange(newPos, newPos);
+            });
+        });
+
         const canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
 
