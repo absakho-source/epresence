@@ -157,7 +157,7 @@ $bodyClass = 'sign-page';
                             </div>
 
                             <!-- Sign Form -->
-                            <form id="signForm" method="POST" action="<?= SITE_URL ?>/api/signature.php">
+                            <form id="signForm" method="POST" action="../../api/signature.php">
                                 <input type="hidden" name="sheet_code" value="<?= sanitize($code) ?>">
                                 <?= csrfField() ?>
 
@@ -309,7 +309,7 @@ $bodyClass = 'sign-page';
                 const data = await response.json();
 
                 if (data.success) {
-                    window.location.href = '<?= SITE_URL ?>/pages/sign/confirm.php?code=<?= urlencode($code) ?>';
+                    window.location.href = 'confirm.php?code=<?= urlencode($code) ?>';
                 } else {
                     // Si session expirée, proposer de recharger la page
                     if (data.error && data.error.includes('Session expirée')) {
