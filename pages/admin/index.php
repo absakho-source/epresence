@@ -309,9 +309,13 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <td><small><?= sanitize($user['email']) ?></small></td>
                                     <td>
                                         <small><?= $user['structure'] ? sanitize(getStructureName($user['structure'])) : '-' ?></small>
-                                        <?php if (!empty($user['is_structure_admin'])): ?>
-                                            <br><span class="badge bg-warning text-dark" title="Super-utilisateur: voit toutes les feuilles de sa structure">
-                                                <i class="bi bi-star-fill me-1"></i>Super
+                                        <?php if (!empty($user['is_structure_admin']) && $user['structure']): ?>
+                                            <?php
+                                                $userCategory = getStructureCategory($user['structure']);
+                                                $isDGUser = ($userCategory === 'Direction générale');
+                                            ?>
+                                            <br><span class="badge <?= $isDGUser ? 'bg-danger' : 'bg-warning text-dark' ?>" title="<?= $isDGUser ? 'Voit TOUTES les feuilles de la DGPPE' : 'Voit les feuilles de: ' . sanitize($userCategory) ?>">
+                                                <i class="bi bi-star-fill me-1"></i><?= $isDGUser ? 'DG' : 'Super' ?>
                                             </span>
                                         <?php endif; ?>
                                     </td>
@@ -507,7 +511,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <label class="form-check-label" for="editIsStructureAdmin">
                                 <i class="bi bi-star-fill text-warning me-1"></i>Super-utilisateur de structure
                             </label>
-                            <div class="form-text">Peut voir toutes les feuilles créées par les membres de sa catégorie de structure.</div>
+                            <div class="form-text">Peut voir les feuilles de sa catégorie de structure. <strong>Direction générale</strong> = accès à TOUTES les feuilles.</div>
                         </div>
                     </div>
                     <div class="row mb-3">
