@@ -292,7 +292,7 @@ $bodyClass = 'sign-page';
                                                autocomplete="organization">
                                         <datalist id="structures-list">
                                             <?php foreach (getStructuresGrouped() as $category => $structures): ?>
-                                                <?php foreach ($structures as $code => $name): ?>
+                                                <?php foreach ($structures as $name): ?>
                                             <option value="<?= sanitize($name) ?>">
                                                 <?php endforeach; ?>
                                             <?php endforeach; ?>
@@ -364,25 +364,6 @@ $bodyClass = 'sign-page';
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // S'assurer que l'indicatif commence par +
-        document.querySelectorAll('.phone-country-code').forEach(input => {
-            input.addEventListener('input', function() {
-                let val = this.value.replace(/[^0-9+]/g, '');
-                if (!val.startsWith('+')) {
-                    val = '+' + val.replace(/\+/g, '');
-                }
-                this.value = val;
-
-                // Re-formater le numéro associé quand l'indicatif change
-                const phoneInputId = this.id.replace('_country', '');
-                const phoneInput = document.getElementById(phoneInputId);
-                if (phoneInput && phoneInput.value) {
-                    const formatted = formatPhoneNumber(phoneInput.value, val);
-                    phoneInput.value = formatted;
-                }
-            });
-        });
-
         // Formats par pays (indicatif => {maxDigits, format})
         const phoneFormats = {
             '+221': { maxDigits: 9, format: [2, 3, 2, 2] },       // Sénégal: XX XXX XX XX
@@ -431,6 +412,24 @@ $bodyClass = 'sign-page';
 
             return formatted;
         }
+
+        // S'assurer que l'indicatif commence par +
+        document.querySelectorAll('.phone-country-code').forEach(input => {
+            input.addEventListener('input', function() {
+                let val = this.value.replace(/[^0-9+]/g, '');
+                if (!val.startsWith('+')) {
+                    val = '+' + val.replace(/\+/g, '');
+                }
+                this.value = val;
+
+                // Re-formater le numéro associé quand l'indicatif change
+                const phoneInputId = this.id.replace('_country', '');
+                const phoneInput = document.getElementById(phoneInputId);
+                if (phoneInput && phoneInput.value) {
+                    phoneInput.value = formatPhoneNumber(phoneInput.value, val);
+                }
+            });
+        });
 
         // Appliquer le formatage aux champs téléphone
         document.querySelectorAll('.phone-input').forEach(input => {
