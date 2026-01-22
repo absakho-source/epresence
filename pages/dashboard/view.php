@@ -184,6 +184,13 @@ require_once __DIR__ . '/../../includes/header.php';
                 <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informations</h5>
             </div>
             <div class="card-body">
+                <?php if (!empty($sheet['description'])): ?>
+                <p class="mb-3">
+                    <i class="bi bi-text-paragraph me-2 text-muted"></i>
+                    <?= nl2br(sanitize($sheet['description'])) ?>
+                </p>
+                <hr class="my-2">
+                <?php endif; ?>
                 <p class="mb-2">
                     <i class="bi bi-calendar-event me-2 text-muted"></i>
                     <strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?>

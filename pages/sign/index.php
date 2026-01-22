@@ -208,6 +208,9 @@ $bodyClass = 'sign-page';
                             <!-- Event Info -->
                             <div class="event-info mb-4">
                                 <h5 class="mb-2"><?= sanitize($sheet['title']) ?></h5>
+                                <?php if (!empty($sheet['description'])): ?>
+                                <p class="mb-2 small"><?= nl2br(sanitize($sheet['description'])) ?></p>
+                                <?php endif; ?>
                                 <div class="small text-muted">
                                     <i class="bi bi-calendar-event me-1"></i>
                                     <?= formatDateFr($sheet['event_date']) ?>
