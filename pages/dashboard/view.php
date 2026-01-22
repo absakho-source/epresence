@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
         $docsStmt = db()->prepare("SELECT stored_name FROM sheet_documents WHERE sheet_id = ?");
         $docsStmt->execute([$sheetId]);
         while ($docFile = $docsStmt->fetch()) {
-            $filePath = __DIR__ . '/../../uploads/documents/' . $docFile['stored_name'];
+            $filePath = DOCUMENTS_PATH . '/' . $docFile['stored_name'];
             if (file_exists($filePath)) {
                 unlink($filePath);
             }
@@ -114,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
 
             if ($docFile) {
                 // Supprimer le fichier physique
-                $filePath = __DIR__ . '/../../uploads/documents/' . $docFile['stored_name'];
+                $filePath = DOCUMENTS_PATH . '/' . $docFile['stored_name'];
                 if (file_exists($filePath)) {
                     unlink($filePath);
                 }
@@ -218,13 +218,6 @@ require_once __DIR__ . '/../../includes/header.php';
                         <strong>Lieu :</strong> <?= sanitize($sheet['location']) ?>
                     </p>
                 <?php endif; ?>
-                <?php if ($sheet['description']): ?>
-                    <p class="mb-2">
-                        <i class="bi bi-card-text me-2 text-muted"></i>
-                        <strong>Description :</strong><br>
-                        <?= nl2br(sanitize($sheet['description'])) ?>
-                    </p>
-                <?php endif; ?>
                 <p class="mb-0">
                     <i class="bi bi-vector-pen me-2 text-muted"></i>
                     <strong>Signatures :</strong> <?= count($signatures) ?>
@@ -232,12 +225,17 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
         </div>
 
-        <?php if (!empty($documents)): ?>
         <!-- Documents attachés -->
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>Documents (<?= count($documents) ?>)</h5>
+                <?php if ($isOwner && $sheet['status'] === 'active'): ?>
+                <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheetId ?>" class="btn btn-sm btn-outline-primary" title="Ajouter des documents">
+                    <i class="bi bi-plus-circle"></i>
+                </a>
+                <?php endif; ?>
             </div>
+            <?php if (!empty($documents)): ?>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
                     <?php foreach ($documents as $doc):
@@ -267,7 +265,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <small class="text-muted"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></small>
                         </div>
                         <div class="btn-group btn-group-sm">
-                            <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                            <a href="<?= SITE_URL ?>/api/document.php?id=<?= $doc['id'] ?>"
                                target="_blank" class="btn btn-outline-primary" title="Voir">
                                 <i class="bi bi-eye"></i>
                             </a>
@@ -286,8 +284,13 @@ require_once __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                 </ul>
             </div>
+            <?php else: ?>
+            <div class="card-body text-center text-muted py-3">
+                <i class="bi bi-folder2 d-block mb-2" style="font-size: 1.5rem;"></i>
+                <small>Aucun document attaché</small>
+            </div>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
 
         <!-- QR Code -->
         <?php if ($sheet['status'] === 'active'): ?>
@@ -410,7 +413,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <th>Nom complet</th>
                                 <th>Fonction</th>
                                 <th>Structure</th>
-                                <th>Contact</th>
+                                <th>Contacts</th>
                                 <th style="width: 80px;">Signature</th>
                             </tr>
                         </thead>

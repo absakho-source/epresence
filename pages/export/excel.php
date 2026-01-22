@@ -53,19 +53,18 @@ if ($sheet['location']) {
 }
 fputcsv($output, [''], ';'); // Ligne vide
 
-// En-têtes des colonnes
+// En-têtes des colonnes (même ordre que le formulaire)
 fputcsv($output, [
     'N°',
-    'Nom',
     'Prénom',
-    'Email',
+    'Nom',
+    'Structure',
+    'Fonction',
     'Téléphone',
     'Téléphone secondaire',
-    'Fonction',
-    'Structure',
+    'Email',
     'Date de signature',
-    'Heure de signature',
-    'Adresse IP'
+    'Heure de signature'
 ], ';');
 
 // Données
@@ -73,16 +72,15 @@ $num = 1;
 foreach ($signatures as $sig) {
     fputcsv($output, [
         $num++,
-        $sig['last_name'],
         $sig['first_name'],
-        $sig['email'],
+        $sig['last_name'],
+        $sig['structure'] ?? '',
+        $sig['function_title'] ?? '',
         $sig['phone'],
         $sig['phone_secondary'] ?? '',
-        $sig['function_title'] ?? '',
-        $sig['structure'] ?? '',
+        $sig['email'],
         date('d/m/Y', strtotime($sig['signed_at'])),
-        date('H:i:s', strtotime($sig['signed_at'])),
-        $sig['ip_address']
+        date('H:i:s', strtotime($sig['signed_at']))
     ], ';');
 }
 

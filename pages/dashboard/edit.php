@@ -44,8 +44,8 @@ $allowedMimeTypes = [
     'image/png',
     'image/gif'
 ];
-$maxFileSize = 10 * 1024 * 1024; // 10 MB
-$uploadDir = __DIR__ . '/../../uploads/documents/';
+$maxFileSize = MAX_DOCUMENT_SIZE;
+$uploadDir = DOCUMENTS_PATH . '/';
 
 $errors = [];
 $formData = [
@@ -116,6 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Traiter les nouveaux fichiers uploadés
                 if (!empty($_FILES['documents']['name'][0])) {
+                    // Créer le dossier d'upload si nécessaire
+                    if (!is_dir($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+
                     $fileCount = count($_FILES['documents']['name']);
 
                     for ($i = 0; $i < $fileCount; $i++) {
@@ -278,7 +283,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </span>
                                     <small class="text-muted"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></small>
                                 </div>
-                                <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                                <a href="<?= SITE_URL ?>/api/document.php?id=<?= $doc['id'] ?>"
                                    target="_blank" class="btn btn-sm btn-outline-primary me-1">
                                     <i class="bi bi-eye"></i>
                                 </a>

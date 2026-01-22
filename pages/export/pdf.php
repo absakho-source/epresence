@@ -168,6 +168,21 @@ if (file_exists($logoMepcPath)) {
             color: #00703c;
         }
 
+        /* Description */
+        .event-description {
+            padding: 8px 15px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-style: italic;
+            color: #555;
+            background-color: #fafafa;
+            border-left: 3px solid #00703c;
+        }
+        .event-description strong {
+            color: #00703c;
+            font-style: normal;
+        }
+
         /* Table */
         table {
             width: 100%;
@@ -270,6 +285,13 @@ if (file_exists($logoMepcPath)) {
             <span><strong>Lieu :</strong> <?= htmlspecialchars($sheet['location']) ?></span>
         <?php endif; ?>
     </div>
+
+    <?php if (!empty($sheet['description'])): ?>
+    <!-- Description -->
+    <div class="event-description">
+        <strong>Description :</strong> <?= htmlspecialchars($sheet['description']) ?>
+    </div>
+    <?php endif; ?>
 
     <!-- Table -->
     <table>

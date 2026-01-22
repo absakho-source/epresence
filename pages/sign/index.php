@@ -6,6 +6,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../config/structures.php';
 
 $code = $_GET['code'] ?? '';
 
@@ -160,19 +161,13 @@ $bodyClass = 'sign-page';
         /* Phone input styling */
         .phone-country-code {
             flex-shrink: 0;
-            font-size: 0.9rem;
-            padding-left: 8px;
-            padding-right: 24px;
+            max-width: 70px;
+            text-align: center;
+            font-weight: 500;
         }
         .phone-input {
             flex: 1;
             min-width: 0;
-        }
-        @media (max-width: 400px) {
-            .phone-country-code {
-                max-width: 95px !important;
-                font-size: 0.85rem;
-            }
         }
     </style>
 </head>
@@ -261,7 +256,7 @@ $bodyClass = 'sign-page';
                                             <div class="doc-name"><?= sanitize($doc['original_name']) ?></div>
                                             <div class="doc-type"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></div>
                                         </div>
-                                        <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                                        <a href="<?= SITE_URL ?>/api/document.php?id=<?= $doc['id'] ?>"
                                            target="_blank" class="btn btn-sm btn-outline-primary btn-view">
                                             <i class="bi bi-eye me-1"></i>Voir
                                         </a>
@@ -290,11 +285,23 @@ $bodyClass = 'sign-page';
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-6 mb-3">
-                                        <label for="structure" class="form-label">Structure</label>
-                                        <input type="text" class="form-control" id="structure" name="structure" autocomplete="organization">
+                                    <div class="col-12 col-sm-6 mb-3">
+                                        <label for="structure_select" class="form-label">Structure</label>
+                                        <select class="form-select" id="structure_select" name="structure_select">
+                                            <option value="">-- Sélectionnez --</option>
+                                            <?php foreach (getStructuresGrouped() as $category => $structures): ?>
+                                            <optgroup label="<?= sanitize($category) ?>">
+                                                <?php foreach ($structures as $code => $name): ?>
+                                                <option value="<?= sanitize($name) ?>"><?= sanitize($name) ?></option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
+                                            <?php endforeach; ?>
+                                            <option value="__autre__">➕ Autre structure...</option>
+                                        </select>
+                                        <input type="hidden" name="structure" id="structure" value="">
+                                        <input type="text" class="form-control mt-2 d-none" id="structure_custom" placeholder="Nom de votre structure" autocomplete="organization">
                                     </div>
-                                    <div class="col-6 mb-3">
+                                    <div class="col-12 col-sm-6 mb-3">
                                         <label for="function_title" class="form-label">Fonction</label>
                                         <input type="text" class="form-control" id="function_title" name="function_title" autocomplete="organization-title">
                                     </div>
@@ -304,32 +311,14 @@ $bodyClass = 'sign-page';
                                     <div class="col-12 col-sm-6 mb-3">
                                         <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <select class="form-select phone-country-code" id="phone_country" style="max-width: 110px;">
-                                                <option value="+221" data-format="XX XXX XX XX" data-digits="9" selected>+221</option>
-                                                <option value="+33" data-format="X XX XX XX XX" data-digits="9">+33</option>
-                                                <option value="+225" data-format="XX XX XX XX XX" data-digits="10">+225</option>
-                                                <option value="+223" data-format="XX XX XX XX" data-digits="8">+223</option>
-                                                <option value="+222" data-format="XX XX XX XX" data-digits="8">+222</option>
-                                                <option value="+224" data-format="XXX XX XX XX" data-digits="9">+224</option>
-                                                <option value="+220" data-format="XXX XX XX" data-digits="7">+220</option>
-                                                <option value="+245" data-format="XXX XXXX" data-digits="7">+245</option>
-                                            </select>
+                                            <input type="text" class="form-control phone-country-code" id="phone_country" value="+221" maxlength="5">
                                             <input type="tel" class="form-control phone-input" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
                                         </div>
                                     </div>
                                     <div class="col-12 col-sm-6 mb-3">
                                         <label for="phone_secondary" class="form-label">Tél. secondaire</label>
                                         <div class="input-group">
-                                            <select class="form-select phone-country-code" id="phone_secondary_country" style="max-width: 110px;">
-                                                <option value="+221" data-format="XX XXX XX XX" data-digits="9" selected>+221</option>
-                                                <option value="+33" data-format="X XX XX XX XX" data-digits="9">+33</option>
-                                                <option value="+225" data-format="XX XX XX XX XX" data-digits="10">+225</option>
-                                                <option value="+223" data-format="XX XX XX XX" data-digits="8">+223</option>
-                                                <option value="+222" data-format="XX XX XX XX" data-digits="8">+222</option>
-                                                <option value="+224" data-format="XXX XX XX XX" data-digits="9">+224</option>
-                                                <option value="+220" data-format="XXX XX XX" data-digits="7">+220</option>
-                                                <option value="+245" data-format="XXX XXXX" data-digits="7">+245</option>
-                                            </select>
+                                            <input type="text" class="form-control phone-country-code" id="phone_secondary_country" value="+221" maxlength="5">
                                             <input type="tel" class="form-control phone-input" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
                                         </div>
                                     </div>
@@ -378,87 +367,38 @@ $bodyClass = 'sign-page';
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Phone number formatting
-        const phoneFormats = {
-            '+221': { format: 'XX XXX XX XX', digits: 9, placeholder: '77 123 45 67' },      // Sénégal
-            '+33':  { format: 'X XX XX XX XX', digits: 9, placeholder: '6 12 34 56 78' },    // France
-            '+225': { format: 'XX XX XX XX XX', digits: 10, placeholder: '07 12 34 56 78' }, // Côte d'Ivoire
-            '+223': { format: 'XX XX XX XX', digits: 8, placeholder: '70 12 34 56' },        // Mali
-            '+222': { format: 'XX XX XX XX', digits: 8, placeholder: '22 12 34 56' },        // Mauritanie
-            '+224': { format: 'XXX XX XX XX', digits: 9, placeholder: '620 12 34 56' },      // Guinée
-            '+220': { format: 'XXX XX XX', digits: 7, placeholder: '301 23 45' },            // Gambie
-            '+245': { format: 'XXX XXXX', digits: 7, placeholder: '955 1234' }               // Guinée-Bissau
-        };
+        // Gestion du select de structure
+        const structureSelect = document.getElementById('structure_select');
+        const structureHidden = document.getElementById('structure');
+        const structureCustom = document.getElementById('structure_custom');
 
-        function formatPhoneNumber(value, countryCode) {
-            // Remove all non-digits
-            const digits = value.replace(/\D/g, '');
-            const config = phoneFormats[countryCode] || phoneFormats['+221'];
-            const format = config.format;
-
-            let result = '';
-            let digitIndex = 0;
-
-            for (let i = 0; i < format.length && digitIndex < digits.length; i++) {
-                if (format[i] === 'X') {
-                    result += digits[digitIndex];
-                    digitIndex++;
+        if (structureSelect) {
+            structureSelect.addEventListener('change', function() {
+                if (this.value === '__autre__') {
+                    structureCustom.classList.remove('d-none');
+                    structureCustom.focus();
+                    structureHidden.value = '';
                 } else {
-                    result += format[i];
-                    // Only add space if we have more digits to add
-                    if (digitIndex < digits.length) {
-                        // Skip adding space if next format char is also a space
-                    }
-                }
-            }
-
-            return result.trim();
-        }
-
-        function updatePlaceholder(input, select) {
-            const countryCode = select.value;
-            const config = phoneFormats[countryCode] || phoneFormats['+221'];
-            input.placeholder = config.placeholder;
-        }
-
-        // Apply formatting to all phone inputs
-        document.querySelectorAll('.phone-input').forEach(input => {
-            const select = input.closest('.input-group').querySelector('.phone-country-code');
-
-            // Update placeholder when country changes
-            select.addEventListener('change', function() {
-                updatePlaceholder(input, select);
-                // Reformat existing value
-                if (input.value) {
-                    input.value = formatPhoneNumber(input.value, select.value);
+                    structureCustom.classList.add('d-none');
+                    structureCustom.value = '';
+                    structureHidden.value = this.value;
                 }
             });
 
-            // Format on input
-            input.addEventListener('input', function(e) {
-                const cursorPos = this.selectionStart;
-                const oldLength = this.value.length;
-                const countryCode = select.value;
-                const config = phoneFormats[countryCode] || phoneFormats['+221'];
-
-                // Limit digits
-                const digits = this.value.replace(/\D/g, '').slice(0, config.digits);
-                this.value = formatPhoneNumber(digits, countryCode);
-
-                // Adjust cursor position
-                const newLength = this.value.length;
-                const diff = newLength - oldLength;
-                this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            // Mettre à jour la valeur cachée quand on tape dans le champ personnalisé
+            structureCustom.addEventListener('input', function() {
+                structureHidden.value = this.value;
             });
+        }
 
-            // Format on paste
-            input.addEventListener('paste', function(e) {
-                e.preventDefault();
-                const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-                const countryCode = select.value;
-                const config = phoneFormats[countryCode] || phoneFormats['+221'];
-                const digits = pastedText.replace(/\D/g, '').slice(0, config.digits);
-                this.value = formatPhoneNumber(digits, countryCode);
+        // S'assurer que l'indicatif commence par +
+        document.querySelectorAll('.phone-country-code').forEach(input => {
+            input.addEventListener('input', function() {
+                let val = this.value.replace(/[^0-9+]/g, '');
+                if (!val.startsWith('+')) {
+                    val = '+' + val.replace(/\+/g, '');
+                }
+                this.value = val;
             });
         });
 
@@ -514,16 +454,21 @@ $bodyClass = 'sign-page';
             // Set signature data
             document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
 
-            // Prepend country codes to phone numbers
+            // Prepend country codes to phone numbers (only if not already prepended)
             const phoneInput = document.getElementById('phone');
             const phoneCountry = document.getElementById('phone_country');
             const phoneSecondary = document.getElementById('phone_secondary');
             const phoneSecondaryCountry = document.getElementById('phone_secondary_country');
 
-            if (phoneInput.value) {
+            // Sauvegarder les valeurs originales pour les restaurer en cas d'erreur
+            const originalPhone = phoneInput.value;
+            const originalPhoneSecondary = phoneSecondary.value;
+
+            // Ne pas ajouter l'indicatif s'il est déjà présent
+            if (phoneInput.value && !phoneInput.value.startsWith('+')) {
                 phoneInput.value = phoneCountry.value + ' ' + phoneInput.value;
             }
-            if (phoneSecondary.value) {
+            if (phoneSecondary.value && !phoneSecondary.value.startsWith('+')) {
                 phoneSecondary.value = phoneSecondaryCountry.value + ' ' + phoneSecondary.value;
             }
 
@@ -554,12 +499,20 @@ $bodyClass = 'sign-page';
                             return;
                         }
                     }
+                    // Restaurer les valeurs originales
+                    phoneInput.value = originalPhone;
+                    phoneSecondary.value = originalPhoneSecondary;
+
                     errorsDiv.innerHTML = data.errors ? data.errors.join('<br>') : data.error;
                     errorsDiv.classList.remove('d-none');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Valider ma signature';
                 }
             } catch (error) {
+                // Restaurer les valeurs originales
+                phoneInput.value = originalPhone;
+                phoneSecondary.value = originalPhoneSecondary;
+
                 errorsDiv.textContent = 'Erreur de connexion. Vérifiez votre connexion internet et réessayez.';
                 errorsDiv.classList.remove('d-none');
                 submitBtn.disabled = false;

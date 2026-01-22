@@ -33,8 +33,18 @@ define('INCLUDES_PATH', BASE_PATH . '/includes');
 define('PAGES_PATH', BASE_PATH . '/pages');
 define('ASSETS_PATH', BASE_PATH . '/assets');
 
-// Configuration des uploads (si nécessaire)
+// Configuration des uploads
 define('MAX_SIGNATURE_SIZE', 500000); // 500KB max pour les signatures
+define('MAX_DOCUMENT_SIZE', 10 * 1024 * 1024); // 10 MB max pour les documents
+
+// Chemin des uploads - utilise le disque persistant Render si disponible
+$persistentDisk = '/var/data/uploads';
+if (getenv('RENDER') && is_dir($persistentDisk)) {
+    define('UPLOADS_PATH', $persistentDisk);
+} else {
+    define('UPLOADS_PATH', BASE_PATH . '/uploads');
+}
+define('DOCUMENTS_PATH', UPLOADS_PATH . '/documents');
 
 // Configuration CSRF
 define('CSRF_TOKEN_NAME', 'csrf_token');
@@ -64,15 +74,26 @@ if (DEBUG_MODE) {
 
 // Démarrage de la session
 if (session_status() === PHP_SESSION_NONE) {
-    // Utiliser un répertoire de sessions dans le projet si le répertoire par défaut n'existe pas
-    $sessionPath = ini_get('session.save_path');
-    if (empty($sessionPath) || !is_dir($sessionPath) || !is_writable($sessionPath)) {
-        $localSessionPath = BASE_PATH . '/sessions';
-        if (!is_dir($localSessionPath)) {
-            @mkdir($localSessionPath, 0700, true);
+    // Sur Render, utiliser le disque persistant pour les sessions
+    if (getenv('RENDER') && is_dir('/var/data/uploads')) {
+        $sessionPath = '/var/data/uploads/sessions';
+        if (!is_dir($sessionPath)) {
+            @mkdir($sessionPath, 0700, true);
         }
-        if (is_dir($localSessionPath) && is_writable($localSessionPath)) {
-            session_save_path($localSessionPath);
+        if (is_dir($sessionPath) && is_writable($sessionPath)) {
+            session_save_path($sessionPath);
+        }
+    } else {
+        // En local, utiliser un répertoire dans le projet
+        $sessionPath = ini_get('session.save_path');
+        if (empty($sessionPath) || !is_dir($sessionPath) || !is_writable($sessionPath)) {
+            $localSessionPath = BASE_PATH . '/sessions';
+            if (!is_dir($localSessionPath)) {
+                @mkdir($localSessionPath, 0700, true);
+            }
+            if (is_dir($localSessionPath) && is_writable($localSessionPath)) {
+                session_save_path($localSessionPath);
+            }
         }
     }
 
