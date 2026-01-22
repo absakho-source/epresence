@@ -38,7 +38,7 @@ define('MAX_SIGNATURE_SIZE', 500000); // 500KB max pour les signatures
 
 // Configuration CSRF
 define('CSRF_TOKEN_NAME', 'csrf_token');
-define('CSRF_TOKEN_LIFETIME', 3600); // 1 heure
+define('CSRF_TOKEN_LIFETIME', 7200); // 2 heures (plus de temps pour les mobiles)
 
 // Timezone
 date_default_timezone_set('Africa/Dakar');
@@ -75,6 +75,20 @@ if (session_status() === PHP_SESSION_NONE) {
             session_save_path($localSessionPath);
         }
     }
+
+    // Configuration des cookies de session pour mobile
+    $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                (!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+    session_set_cookie_params([
+        'lifetime' => SESSION_LIFETIME,
+        'path' => '/',
+        'domain' => '',
+        'secure' => $isSecure,
+        'httponly' => true,
+        'samesite' => 'Lax' // Important pour les mobiles - 'Lax' au lieu de 'Strict'
+    ]);
+
     session_name(SESSION_NAME);
     session_start();
 }

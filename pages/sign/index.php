@@ -300,6 +300,7 @@ $bodyClass = 'sign-page';
                 const response = await fetch(this.action, {
                     method: 'POST',
                     body: formData,
+                    credentials: 'same-origin', // Important pour envoyer les cookies sur mobile
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
@@ -310,13 +311,20 @@ $bodyClass = 'sign-page';
                 if (data.success) {
                     window.location.href = '<?= SITE_URL ?>/pages/sign/confirm.php?code=<?= urlencode($code) ?>';
                 } else {
+                    // Si session expirée, proposer de recharger la page
+                    if (data.error && data.error.includes('Session expirée')) {
+                        if (confirm('Votre session a expiré. Voulez-vous recharger la page pour réessayer ?')) {
+                            location.reload();
+                            return;
+                        }
+                    }
                     errorsDiv.innerHTML = data.errors ? data.errors.join('<br>') : data.error;
                     errorsDiv.classList.remove('d-none');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Valider ma signature';
                 }
             } catch (error) {
-                errorsDiv.textContent = 'Une erreur est survenue. Veuillez réessayer.';
+                errorsDiv.textContent = 'Erreur de connexion. Vérifiez votre connexion internet et réessayez.';
                 errorsDiv.classList.remove('d-none');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Valider ma signature';
