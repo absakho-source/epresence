@@ -154,7 +154,11 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <span class="badge bg-warning text-dark ms-1"><i class="bi bi-star me-1"></i>Super-utilisateur</span>
                             <?php endif; ?>
                             <?php if ($user['structure']): ?>
-                                <span class="badge bg-info ms-1"><?= sanitize(getStructureName($user['structure'])) ?></span>
+                                <?php
+                                    $profileCategory = getStructureCategory($user['structure']);
+                                    $profileStructureDisplay = ($profileCategory === 'Direction générale') ? $profileCategory : getStructureName($user['structure']);
+                                ?>
+                                <span class="badge bg-info ms-1"><?= sanitize($profileStructureDisplay) ?></span>
                             <?php endif; ?>
                         </p>
                     </div>
