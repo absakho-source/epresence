@@ -90,16 +90,18 @@ try {
     $pdo->exec($schema);
     echo "Tables créées avec succès !\n\n";
 
-    // Créer un utilisateur admin par défaut
-    $adminEmail = 'admin@economie.gouv.sn';
-    $adminPassword = password_hash('Admin@2025', PASSWORD_DEFAULT);
-
+    // Créer les utilisateurs admin par défaut
     $stmt = $pdo->prepare("INSERT INTO users (email, password, first_name, last_name, structure, role) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$adminEmail, $adminPassword, 'Admin', 'DGPPE', 'DGPPE', 'admin']);
 
-    echo "Utilisateur admin créé :\n";
-    echo "  Email: admin@economie.gouv.sn\n";
-    echo "  Mot de passe: Admin@2025\n\n";
+    // Admin 1
+    $stmt->execute(['admin@economie.gouv.sn', password_hash('Admin@2025', PASSWORD_DEFAULT), 'Admin', 'DGPPE', 'DGPPE', 'admin']);
+
+    // Admin 2 - Abou Sakho
+    $stmt->execute(['abou.sakho@economie.gouv.sn', password_hash('Start123', PASSWORD_DEFAULT), 'Abou', 'Sakho', 'DGPPE', 'admin']);
+
+    echo "Utilisateurs admin créés :\n";
+    echo "  1. admin@economie.gouv.sn / Admin@2025\n";
+    echo "  2. abou.sakho@economie.gouv.sn / Start123\n\n";
 
     echo "=== INITIALISATION TERMINÉE ===\n";
     echo "\n⚠️  IMPORTANT: Supprimez ce fichier (setup-db.php) après utilisation !\n";
