@@ -200,3 +200,51 @@ function searchStructure($query) {
     }
     return $results;
 }
+
+/**
+ * Obtenir le nom d'une structure (retourne la valeur telle quelle car on utilise des noms)
+ */
+function getStructureName($structure) {
+    if (empty($structure)) {
+        return '';
+    }
+    // Les structures sont maintenant stockées par leur nom complet
+    return $structure;
+}
+
+/**
+ * Obtenir la catégorie d'une structure par son nom
+ */
+function getStructureCategory($structure) {
+    global $ORGANIZATIONS;
+    if (empty($structure)) {
+        return null;
+    }
+    foreach ($ORGANIZATIONS as $category => $structures) {
+        if (in_array($structure, $structures)) {
+            return $category;
+        }
+    }
+    return null;
+}
+
+/**
+ * Obtenir toutes les structures d'une même catégorie
+ */
+function getStructureCodesInCategory($structure) {
+    global $ORGANIZATIONS;
+    $category = getStructureCategory($structure);
+    if ($category && isset($ORGANIZATIONS[$category])) {
+        return $ORGANIZATIONS[$category];
+    }
+    return [$structure];
+}
+
+/**
+ * Vérifier si deux structures appartiennent à la même catégorie
+ */
+function areStructuresInSameCategory($struct1, $struct2) {
+    $cat1 = getStructureCategory($struct1);
+    $cat2 = getStructureCategory($struct2);
+    return $cat1 !== null && $cat1 === $cat2;
+}
