@@ -154,11 +154,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <span class="badge bg-warning text-dark ms-1"><i class="bi bi-star me-1"></i>Super-utilisateur</span>
                             <?php endif; ?>
                             <?php if ($user['structure']): ?>
-                                <?php
-                                    $profileCategory = getStructureCategory($user['structure']);
-                                    $profileStructureDisplay = ($profileCategory === 'Direction générale') ? $profileCategory : getStructureName($user['structure']);
-                                ?>
-                                <span class="badge bg-info ms-1"><?= sanitize($profileStructureDisplay) ?></span>
+                                <span class="badge bg-info ms-1"><?= sanitize(getStructureName($user['structure'])) ?></span>
                             <?php endif; ?>
                         </p>
                     </div>
@@ -231,12 +227,8 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <?php foreach ($structuresGrouped as $category => $structures): ?>
                                         <optgroup label="<?= sanitize($category) ?>">
                                             <?php foreach ($structures as $code => $name): ?>
-                                                <?php
-                                                    // Pour Direction générale, afficher le nom de la catégorie au lieu du poste
-                                                    $displayName = ($category === 'Direction générale') ? $category : $name;
-                                                ?>
                                                 <option value="<?= sanitize($code) ?>" <?= $user['structure'] === $code ? 'selected' : '' ?>>
-                                                    <?= sanitize($displayName) ?>
+                                                    <?= sanitize($name) ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </optgroup>

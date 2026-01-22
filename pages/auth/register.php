@@ -115,12 +115,8 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php foreach ($structuresGrouped as $category => $structures): ?>
                                 <optgroup label="<?= sanitize($category) ?>">
                                     <?php foreach ($structures as $code => $name): ?>
-                                        <?php
-                                            // Pour Direction générale, afficher le nom de la catégorie au lieu du poste
-                                            $displayName = ($category === 'Direction générale') ? $category : $name;
-                                        ?>
                                         <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
-                                            <?= sanitize($displayName) ?>
+                                            <?= sanitize($name) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </optgroup>
