@@ -7,11 +7,13 @@
 // Structures organisées par catégorie
 $DGPPE_STRUCTURES = array(
     'Direction générale' => array(
-        'DG' => 'Direction générale',
+        'DG' => 'Directeur général',
         'DG-COORD' => 'Coordonnateur',
         'DG-CT1' => 'Conseiller Technique 1',
         'DG-CT2' => 'Conseiller Technique 2',
         'DG-CT3' => 'Conseiller Technique 3',
+    ),
+    'Services rattachés à la Direction générale' => array(
         'DG-BC' => 'Bureau du Courrier',
         'DG-BI' => 'Bureau Informatique',
         'DG-BA' => 'Bureau des Archives',
