@@ -99,13 +99,14 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="mb-3">
                         <label for="email" class="form-label">Adresse email <span class="text-danger">*</span></label>
                         <div class="input-group">
-                            <input type="email" class="form-control" id="email" name="email"
-                                   value="<?= sanitize($email) ?>"
+                            <input type="text" class="form-control" id="email_prefix" name="email_prefix"
+                                   value="<?= sanitize(str_replace('@' . ALLOWED_EMAIL_DOMAIN, '', $email)) ?>"
                                    placeholder="prenom.nom"
                                    required>
                             <span class="input-group-text">@<?= ALLOWED_EMAIL_DOMAIN ?></span>
                         </div>
-                        <div class="form-text">Utilisez votre adresse email professionnelle.</div>
+                        <input type="hidden" id="email" name="email" value="<?= sanitize($email) ?>">
+                        <div class="form-text">Entrez uniquement la partie avant @</div>
                     </div>
 
                     <div class="mb-3">
@@ -153,21 +154,21 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <script>
-// Ajouter automatiquement le domaine si l'utilisateur tape juste le préfixe
-document.getElementById('email').addEventListener('blur', function() {
-    var email = this.value.trim();
-    // Si l'email ne contient pas @, ajouter le domaine
-    if (email && email.indexOf('@') === -1) {
-        this.value = email + '@<?= ALLOWED_EMAIL_DOMAIN ?>';
-    }
-    // Si l'email a un autre domaine, le remplacer
-    else if (email && email.indexOf('@') !== -1) {
-        var parts = email.split('@');
-        if (parts[1] !== '<?= ALLOWED_EMAIL_DOMAIN ?>') {
-            this.value = parts[0] + '@<?= ALLOWED_EMAIL_DOMAIN ?>';
-        }
-    }
-});
+// Mettre à jour le champ email caché avec le préfixe + domaine
+var emailPrefix = document.getElementById('email_prefix');
+var emailHidden = document.getElementById('email');
+
+function updateEmail() {
+    var prefix = emailPrefix.value.trim().replace(/@.*$/, ''); // Enlever tout @ et ce qui suit
+    emailPrefix.value = prefix;
+    emailHidden.value = prefix ? prefix + '@<?= ALLOWED_EMAIL_DOMAIN ?>' : '';
+}
+
+emailPrefix.addEventListener('input', updateEmail);
+emailPrefix.addEventListener('blur', updateEmail);
+
+// Initialiser au chargement
+updateEmail();
 </script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
