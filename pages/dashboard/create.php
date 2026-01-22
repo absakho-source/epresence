@@ -230,11 +230,14 @@ require_once __DIR__ . '/../../includes/header.php';
                     <div class="mb-3">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="auto_close" name="auto_close"
-                                   <?= $formData['auto_close'] ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="auto_close">
+                                   <?= $formData['auto_close'] ? 'checked' : '' ?>
+                                   <?= empty($formData['end_time']) ? 'disabled' : '' ?>>
+                            <label class="form-check-label <?= empty($formData['end_time']) ? 'text-muted' : '' ?>" for="auto_close">
                                 Clôturer automatiquement à l'heure de fin
                             </label>
-                            <div class="form-text">Si coché, les signatures ne seront plus acceptées après l'heure de fin.</div>
+                            <div class="form-text" id="auto_close_hint">
+                                <?= empty($formData['end_time']) ? 'Définissez d\'abord une heure de fin pour activer cette option.' : 'Si coché, les signatures ne seront plus acceptées après l\'heure de fin.' ?>
+                            </div>
                         </div>
                     </div>
 
@@ -302,6 +305,29 @@ require_once __DIR__ . '/../../includes/header.php';
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Gestion du checkbox auto_close en fonction de l'heure de fin
+    const endTimeInput = document.getElementById('end_time');
+    const autoCloseCheckbox = document.getElementById('auto_close');
+    const autoCloseLabel = document.querySelector('label[for="auto_close"]');
+    const autoCloseHint = document.getElementById('auto_close_hint');
+
+    function updateAutoCloseState() {
+        const hasEndTime = endTimeInput.value !== '';
+        autoCloseCheckbox.disabled = !hasEndTime;
+        if (!hasEndTime) {
+            autoCloseCheckbox.checked = false;
+            autoCloseLabel.classList.add('text-muted');
+            autoCloseHint.textContent = "Définissez d'abord une heure de fin pour activer cette option.";
+        } else {
+            autoCloseLabel.classList.remove('text-muted');
+            autoCloseHint.textContent = "Si coché, les signatures ne seront plus acceptées après l'heure de fin.";
+        }
+    }
+
+    endTimeInput.addEventListener('change', updateAutoCloseState);
+    endTimeInput.addEventListener('input', updateAutoCloseState);
+
+    // Gestion des documents
     const container = document.getElementById('documents-container');
     const addBtn = document.getElementById('add-document');
 
