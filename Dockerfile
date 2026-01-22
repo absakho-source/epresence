@@ -1,14 +1,15 @@
 FROM php:8.2-apache
 
-# Installer les extensions PHP nécessaires
+# Installer les extensions PHP nécessaires (MySQL + PostgreSQL)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
+    libpq-dev \
     zip \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql mysqli \
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_mysql pdo_pgsql mysqli \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
