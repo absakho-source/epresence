@@ -113,13 +113,21 @@ require_once __DIR__ . '/../../includes/header.php';
                         <select class="form-select" id="structure" name="structure" required>
                             <option value="">-- Sélectionnez votre structure --</option>
                             <?php foreach ($structuresGrouped as $category => $structures): ?>
-                                <optgroup label="<?= sanitize($category) ?>">
-                                    <?php foreach ($structures as $code => $name): ?>
-                                        <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
-                                            <?= sanitize($name) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </optgroup>
+                                <?php $singleOption = (count($structures) === 1 && reset($structures) === $category); ?>
+                                <?php if ($singleOption): ?>
+                                    <?php $code = key($structures); ?>
+                                    <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
+                                        <?= sanitize($category) ?>
+                                    </option>
+                                <?php else: ?>
+                                    <optgroup label="<?= sanitize($category) ?>">
+                                        <?php foreach ($structures as $code => $name): ?>
+                                            <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
+                                                <?= sanitize($name) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+                                <?php endif; ?>
                             <?php endforeach; ?>
                         </select>
                     </div>
