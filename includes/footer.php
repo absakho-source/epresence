@@ -7,11 +7,10 @@
             <div class="row align-items-center">
                 <div class="col-md-4 text-center text-md-start mb-2 mb-md-0">
                     <div class="d-flex align-items-center justify-content-center justify-content-md-start">
-                        <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>" alt="Logo DGPPE" height="35" class="footer-logo me-2">
-                        <div>
-                            <span class="d-block fw-bold small text-dark"><?= ORG_NAME ?></span>
-                            <small class="text-muted"><?= SITE_NAME ?></small>
-                        </div>
+                        <a href="<?= SITE_URL ?>" class="d-flex align-items-center text-decoration-none">
+                            <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>" alt="Logo DGPPE" height="35" class="footer-logo me-2">
+                            <span class="fw-bold small text-dark"><?= SITE_NAME ?></span>
+                        </a>
                     </div>
                 </div>
                 <div class="col-md-4 text-center mb-2 mb-md-0">
