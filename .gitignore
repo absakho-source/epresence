@@ -18,6 +18,11 @@ Thumbs.db
 logs/*
 !logs/.gitkeep
 
+# Uploads (documents attachés aux feuilles)
+uploads/documents/*
+!uploads/documents/.gitkeep
+!uploads/.htaccess
+
 # Migration scripts (à supprimer après exécution)
 migrate-*.php
 

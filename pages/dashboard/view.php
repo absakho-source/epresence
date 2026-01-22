@@ -60,6 +60,15 @@ $signaturesStmt = db()->prepare("
 $signaturesStmt->execute([$sheetId]);
 $signatures = $signaturesStmt->fetchAll();
 
+// Récupérer les documents attachés
+$documentsStmt = db()->prepare("
+    SELECT * FROM sheet_documents
+    WHERE sheet_id = ?
+    ORDER BY document_type, uploaded_at
+");
+$documentsStmt->execute([$sheetId]);
+$documents = $documentsStmt->fetchAll();
+
 // Traitement des actions (uniquement pour le propriétaire)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '') && $isOwner) {
     $action = $_POST['action'] ?? '';
@@ -79,10 +88,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
     }
 
     if ($action === 'delete') {
+        // Supprimer les fichiers physiques des documents
+        $docsStmt = db()->prepare("SELECT stored_name FROM sheet_documents WHERE sheet_id = ?");
+        $docsStmt->execute([$sheetId]);
+        while ($docFile = $docsStmt->fetch()) {
+            $filePath = __DIR__ . '/../../uploads/documents/' . $docFile['stored_name'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+
         $deleteStmt = db()->prepare("DELETE FROM sheets WHERE id = ?");
         $deleteStmt->execute([$sheetId]);
         setFlash('success', 'Feuille supprimée avec succès.');
         redirect(SITE_URL . '/pages/dashboard/index.php');
+    }
+
+    if ($action === 'delete_document') {
+        $docId = intval($_POST['document_id'] ?? 0);
+        if ($docId > 0) {
+            // Récupérer le nom du fichier
+            $docStmt = db()->prepare("SELECT stored_name FROM sheet_documents WHERE id = ? AND sheet_id = ?");
+            $docStmt->execute([$docId, $sheetId]);
+            $docFile = $docStmt->fetch();
+
+            if ($docFile) {
+                // Supprimer le fichier physique
+                $filePath = __DIR__ . '/../../uploads/documents/' . $docFile['stored_name'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
+
+                // Supprimer de la base
+                $deleteDocStmt = db()->prepare("DELETE FROM sheet_documents WHERE id = ?");
+                $deleteDocStmt->execute([$docId]);
+                setFlash('success', 'Document supprimé.');
+            }
+        }
+        redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
     }
 
     regenerateCsrfToken();
@@ -181,6 +224,63 @@ require_once __DIR__ . '/../../includes/header.php';
                 </p>
             </div>
         </div>
+
+        <?php if (!empty($documents)): ?>
+        <!-- Documents attachés -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>Documents (<?= count($documents) ?>)</h5>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <?php foreach ($documents as $doc):
+                        $docTypeLabels = [
+                            'agenda' => 'Agenda',
+                            'tdr' => 'TDR',
+                            'report' => 'Rapport',
+                            'other' => 'Document'
+                        ];
+                        $docIcon = 'bi-file-earmark';
+                        if (str_contains($doc['file_type'], 'pdf')) {
+                            $docIcon = 'bi-file-earmark-pdf text-danger';
+                        } elseif (str_contains($doc['file_type'], 'word') || str_contains($doc['file_type'], 'document')) {
+                            $docIcon = 'bi-file-earmark-word text-primary';
+                        } elseif (str_contains($doc['file_type'], 'excel') || str_contains($doc['file_type'], 'sheet')) {
+                            $docIcon = 'bi-file-earmark-excel text-success';
+                        } elseif (str_contains($doc['file_type'], 'image')) {
+                            $docIcon = 'bi-file-earmark-image text-info';
+                        }
+                    ?>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="bi <?= $docIcon ?> me-2" style="font-size: 1.2rem;"></i>
+                        <div class="flex-grow-1 me-2" style="min-width: 0;">
+                            <div class="text-truncate" title="<?= sanitize($doc['original_name']) ?>">
+                                <?= sanitize($doc['original_name']) ?>
+                            </div>
+                            <small class="text-muted"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></small>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                               target="_blank" class="btn btn-outline-primary" title="Voir">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <?php if ($isOwner): ?>
+                            <form method="POST" class="d-inline" onsubmit="return confirm('Supprimer ce document ?')">
+                                <?= csrfField() ?>
+                                <input type="hidden" name="action" value="delete_document">
+                                <input type="hidden" name="document_id" value="<?= $doc['id'] ?>">
+                                <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            <?php endif; ?>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- QR Code -->
         <?php if ($sheet['status'] === 'active'): ?>

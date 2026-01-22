@@ -23,6 +23,30 @@ if ($sheet['status'] !== 'active') {
     redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
 }
 
+// Récupérer les documents existants
+$documentsStmt = db()->prepare("SELECT * FROM sheet_documents WHERE sheet_id = ? ORDER BY document_type, uploaded_at");
+$documentsStmt->execute([$sheetId]);
+$existingDocuments = $documentsStmt->fetchAll();
+
+// Configuration upload
+$allowedMimeTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.oasis.opendocument.text',
+    'application/vnd.oasis.opendocument.spreadsheet',
+    'application/vnd.oasis.opendocument.presentation',
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+];
+$maxFileSize = 10 * 1024 * 1024; // 10 MB
+$uploadDir = __DIR__ . '/../../uploads/documents/';
+
 $errors = [];
 $formData = [
     'title' => $sheet['title'],
@@ -81,6 +105,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $sheetId
                 ]);
 
+                // Traiter les nouveaux fichiers uploadés
+                if (!empty($_FILES['documents']['name'][0])) {
+                    $fileCount = count($_FILES['documents']['name']);
+
+                    for ($i = 0; $i < $fileCount; $i++) {
+                        if ($_FILES['documents']['error'][$i] === UPLOAD_ERR_OK) {
+                            $tmpName = $_FILES['documents']['tmp_name'][$i];
+                            $originalName = $_FILES['documents']['name'][$i];
+                            $fileSize = $_FILES['documents']['size'][$i];
+                            $mimeType = mime_content_type($tmpName);
+
+                            if (!in_array($mimeType, $allowedMimeTypes)) {
+                                continue;
+                            }
+
+                            if ($fileSize > $maxFileSize) {
+                                continue;
+                            }
+
+                            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                            $storedName = uniqid('doc_') . '_' . time() . '.' . $extension;
+                            $targetPath = $uploadDir . $storedName;
+
+                            if (move_uploaded_file($tmpName, $targetPath)) {
+                                $docType = $_POST['document_types'][$i] ?? 'other';
+
+                                $docStmt = db()->prepare("
+                                    INSERT INTO sheet_documents (sheet_id, original_name, stored_name, file_type, file_size, document_type)
+                                    VALUES (?, ?, ?, ?, ?, ?)
+                                ");
+                                $docStmt->execute([
+                                    $sheetId,
+                                    $originalName,
+                                    $storedName,
+                                    $mimeType,
+                                    $fileSize,
+                                    $docType
+                                ]);
+                            }
+                        }
+                    }
+                }
+
                 setFlash('success', 'Feuille modifiée avec succès.');
                 redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
 
@@ -118,7 +185,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="">
+                <form method="POST" action="" enctype="multipart/form-data">
                     <?= csrfField() ?>
 
                     <div class="mb-3">
@@ -168,6 +235,92 @@ require_once __DIR__ . '/../../includes/header.php';
                                value="<?= sanitize($formData['location']) ?>">
                     </div>
 
+                    <!-- Documents existants -->
+                    <?php if (!empty($existingDocuments)): ?>
+                    <div class="mb-4">
+                        <label class="form-label"><i class="bi bi-folder2-open me-1"></i>Documents existants</label>
+                        <div class="list-group">
+                            <?php foreach ($existingDocuments as $doc):
+                                $docTypeLabels = [
+                                    'agenda' => 'Agenda',
+                                    'tdr' => 'TDR',
+                                    'report' => 'Rapport',
+                                    'other' => 'Document'
+                                ];
+                                $docIcon = 'bi-file-earmark';
+                                if (str_contains($doc['file_type'], 'pdf')) {
+                                    $docIcon = 'bi-file-earmark-pdf text-danger';
+                                } elseif (str_contains($doc['file_type'], 'word') || str_contains($doc['file_type'], 'document')) {
+                                    $docIcon = 'bi-file-earmark-word text-primary';
+                                } elseif (str_contains($doc['file_type'], 'excel') || str_contains($doc['file_type'], 'sheet')) {
+                                    $docIcon = 'bi-file-earmark-excel text-success';
+                                } elseif (str_contains($doc['file_type'], 'image')) {
+                                    $docIcon = 'bi-file-earmark-image text-info';
+                                }
+                            ?>
+                            <div class="list-group-item d-flex align-items-center">
+                                <i class="bi <?= $docIcon ?> me-2"></i>
+                                <div class="flex-grow-1 me-2">
+                                    <span class="text-truncate d-block" style="max-width: 300px;">
+                                        <?= sanitize($doc['original_name']) ?>
+                                    </span>
+                                    <small class="text-muted"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></small>
+                                </div>
+                                <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                                   target="_blank" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Pour supprimer un document, utilisez la page de visualisation de la feuille.
+                        </div>
+                    </div>
+                    <?php endif; ?>
+
+                    <!-- Ajouter de nouveaux documents -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-paperclip me-1"></i>Ajouter des documents
+                        </label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div id="documents-container">
+                                    <div class="document-row mb-2">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-5">
+                                                <input type="file" class="form-control form-control-sm" name="documents[]"
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <select class="form-select form-select-sm" name="document_types[]">
+                                                    <option value="agenda">Agenda / Ordre du jour</option>
+                                                    <option value="tdr">Termes de référence (TDR)</option>
+                                                    <option value="report">Rapport / Compte-rendu</option>
+                                                    <option value="other">Autre document</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3 text-end">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-doc" style="display:none;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-document">
+                                    <i class="bi bi-plus-circle me-1"></i>Ajouter un document
+                                </button>
+                                <div class="form-text mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Formats acceptés : PDF, Word, Excel, PowerPoint, images. Taille max : 10 Mo par fichier.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="bi bi-check-circle me-2"></i>Enregistrer
@@ -181,5 +334,43 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('documents-container');
+    const addBtn = document.getElementById('add-document');
+
+    function updateRemoveButtons() {
+        const rows = container.querySelectorAll('.document-row');
+        rows.forEach((row, index) => {
+            const removeBtn = row.querySelector('.remove-doc');
+            if (removeBtn) {
+                removeBtn.style.display = rows.length > 1 ? 'inline-block' : 'none';
+            }
+        });
+    }
+
+    addBtn.addEventListener('click', function() {
+        const firstRow = container.querySelector('.document-row');
+        const newRow = firstRow.cloneNode(true);
+
+        newRow.querySelector('input[type="file"]').value = '';
+        newRow.querySelector('select').selectedIndex = 0;
+
+        container.appendChild(newRow);
+        updateRemoveButtons();
+    });
+
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-doc')) {
+            const row = e.target.closest('.document-row');
+            if (container.querySelectorAll('.document-row').length > 1) {
+                row.remove();
+                updateRemoveButtons();
+            }
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

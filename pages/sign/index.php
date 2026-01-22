@@ -25,6 +25,10 @@ if (empty($code)) {
         $pageTitle = 'Feuille clôturée';
         $error = 'Cette feuille d\'émargement est clôturée et n\'accepte plus de signatures.';
     } else {
+        // Récupérer les documents attachés
+        $docStmt = db()->prepare("SELECT * FROM sheet_documents WHERE sheet_id = ? ORDER BY document_type, uploaded_at");
+        $docStmt->execute([$sheet['id']]);
+        $documents = $docStmt->fetchAll();
         // Vérifier si la feuille doit être auto-clôturée
         if (isset($sheet['auto_close']) && $sheet['auto_close'] && isset($sheet['end_time']) && $sheet['end_time']) {
             $eventDate = $sheet['event_date'];
@@ -101,6 +105,58 @@ $bodyClass = 'sign-page';
             padding: 5px;
             border-radius: 5px;
         }
+        .documents-section {
+            background: #fff;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+        .documents-section h6 {
+            color: #00703c;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        .doc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .doc-list li {
+            padding: 8px 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .doc-list li:last-child {
+            margin-bottom: 0;
+        }
+        .doc-list .doc-icon {
+            font-size: 1.2rem;
+            color: #00703c;
+        }
+        .doc-list .doc-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .doc-list .doc-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .doc-list .doc-type {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .doc-list .btn-view {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+        }
     </style>
 </head>
 <body class="sign-page">
@@ -155,6 +211,45 @@ $bodyClass = 'sign-page';
                                     <?php endif; ?>
                                 </div>
                             </div>
+
+                            <?php if (!empty($documents)): ?>
+                            <!-- Documents attachés -->
+                            <div class="documents-section">
+                                <h6><i class="bi bi-folder2-open me-2"></i>Documents de la réunion</h6>
+                                <ul class="doc-list">
+                                    <?php foreach ($documents as $doc):
+                                        $docTypeLabels = [
+                                            'agenda' => 'Agenda',
+                                            'tdr' => 'TDR',
+                                            'report' => 'Rapport',
+                                            'other' => 'Document'
+                                        ];
+                                        $docIcon = 'bi-file-earmark';
+                                        if (str_contains($doc['file_type'], 'pdf')) {
+                                            $docIcon = 'bi-file-earmark-pdf';
+                                        } elseif (str_contains($doc['file_type'], 'word') || str_contains($doc['file_type'], 'document')) {
+                                            $docIcon = 'bi-file-earmark-word';
+                                        } elseif (str_contains($doc['file_type'], 'excel') || str_contains($doc['file_type'], 'sheet')) {
+                                            $docIcon = 'bi-file-earmark-excel';
+                                        } elseif (str_contains($doc['file_type'], 'image')) {
+                                            $docIcon = 'bi-file-earmark-image';
+                                        }
+                                    ?>
+                                    <li>
+                                        <i class="bi <?= $docIcon ?> doc-icon"></i>
+                                        <div class="doc-info">
+                                            <div class="doc-name"><?= sanitize($doc['original_name']) ?></div>
+                                            <div class="doc-type"><?= $docTypeLabels[$doc['document_type']] ?? 'Document' ?></div>
+                                        </div>
+                                        <a href="<?= SITE_URL ?>/uploads/documents/<?= sanitize($doc['stored_name']) ?>"
+                                           target="_blank" class="btn btn-sm btn-outline-primary btn-view">
+                                            <i class="bi bi-eye me-1"></i>Voir
+                                        </a>
+                                    </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+                            <?php endif; ?>
 
                             <!-- Sign Form -->
                             <form id="signForm" method="POST" action="../../api/signature.php">

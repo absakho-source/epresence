@@ -11,6 +11,32 @@ $userId = getCurrentUserId();
 $currentUser = getCurrentUser();
 $isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
 
+// Traitement des actions rapides (clôturer/réouvrir)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
+    $action = $_POST['action'] ?? '';
+    $sheetId = intval($_POST['sheet_id'] ?? 0);
+
+    if ($sheetId > 0) {
+        // Vérifier que l'utilisateur est propriétaire de la feuille
+        $checkStmt = db()->prepare("SELECT id, status FROM sheets WHERE id = ? AND user_id = ?");
+        $checkStmt->execute([$sheetId, $userId]);
+        $targetSheet = $checkStmt->fetch();
+
+        if ($targetSheet) {
+            if ($action === 'close' && $targetSheet['status'] === 'active') {
+                $updateStmt = db()->prepare("UPDATE sheets SET status = 'closed', closed_at = CURRENT_TIMESTAMP, closed_by = ? WHERE id = ?");
+                $updateStmt->execute([$userId, $sheetId]);
+                setFlash('success', 'Feuille clôturée avec succès.');
+            } elseif ($action === 'reopen' && $targetSheet['status'] === 'closed') {
+                $updateStmt = db()->prepare("UPDATE sheets SET status = 'active', closed_at = NULL, closed_by = NULL WHERE id = ?");
+                $updateStmt->execute([$sheetId]);
+                setFlash('success', 'Feuille réouverte avec succès.');
+            }
+        }
+    }
+    redirect(SITE_URL . '/pages/dashboard/index.php');
+}
+
 // Vérifier si c'est un super-utilisateur de la Direction générale (voit TOUT)
 $isDGSuperAdmin = false;
 $structureCodes = array();
@@ -306,11 +332,30 @@ require_once __DIR__ . '/../../includes/header.php';
                                    class="btn btn-sm btn-outline-primary" title="Voir">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <?php if ($sheet['status'] === 'active' && !empty($sheet['is_owner'])): ?>
-                                    <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
-                                       class="btn btn-sm btn-outline-secondary" title="Modifier">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
+                                <?php if (!empty($sheet['is_owner'])): ?>
+                                    <?php if ($sheet['status'] === 'active'): ?>
+                                        <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
+                                           class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Clôturer cette feuille ?')">
+                                            <?= csrfField() ?>
+                                            <input type="hidden" name="action" value="close">
+                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Clôturer">
+                                                <i class="bi bi-lock"></i>
+                                            </button>
+                                        </form>
+                                    <?php elseif ($sheet['status'] === 'closed'): ?>
+                                        <form method="POST" class="d-inline">
+                                            <?= csrfField() ?>
+                                            <input type="hidden" name="action" value="reopen">
+                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Réouvrir">
+                                                <i class="bi bi-unlock"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                             </div>
                         </div>

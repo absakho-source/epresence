@@ -17,6 +17,25 @@ $formData = [
     'location' => ''
 ];
 
+// Types de fichiers autorisés
+$allowedMimeTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.oasis.opendocument.text',
+    'application/vnd.oasis.opendocument.spreadsheet',
+    'application/vnd.oasis.opendocument.presentation',
+    'image/jpeg',
+    'image/png',
+    'image/gif'
+];
+$maxFileSize = 10 * 1024 * 1024; // 10 MB
+$uploadDir = __DIR__ . '/../../uploads/documents/';
+
 // Traitement du formulaire
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Vérifier le token CSRF
@@ -73,6 +92,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ]);
 
                 $sheetId = db()->lastInsertId();
+
+                // Traiter les fichiers uploadés
+                if (!empty($_FILES['documents']['name'][0])) {
+                    $uploadedFiles = 0;
+                    $fileCount = count($_FILES['documents']['name']);
+
+                    for ($i = 0; $i < $fileCount; $i++) {
+                        if ($_FILES['documents']['error'][$i] === UPLOAD_ERR_OK) {
+                            $tmpName = $_FILES['documents']['tmp_name'][$i];
+                            $originalName = $_FILES['documents']['name'][$i];
+                            $fileSize = $_FILES['documents']['size'][$i];
+                            $mimeType = mime_content_type($tmpName);
+
+                            // Vérifier le type de fichier
+                            if (!in_array($mimeType, $allowedMimeTypes)) {
+                                continue; // Ignorer les fichiers non autorisés
+                            }
+
+                            // Vérifier la taille
+                            if ($fileSize > $maxFileSize) {
+                                continue; // Ignorer les fichiers trop gros
+                            }
+
+                            // Générer un nom unique
+                            $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+                            $storedName = uniqid('doc_') . '_' . time() . '.' . $extension;
+                            $targetPath = $uploadDir . $storedName;
+
+                            // Déplacer le fichier
+                            if (move_uploaded_file($tmpName, $targetPath)) {
+                                // Déterminer le type de document
+                                $docType = $_POST['document_types'][$i] ?? 'other';
+
+                                // Enregistrer en base
+                                $docStmt = db()->prepare("
+                                    INSERT INTO sheet_documents (sheet_id, original_name, stored_name, file_type, file_size, document_type)
+                                    VALUES (?, ?, ?, ?, ?, ?)
+                                ");
+                                $docStmt->execute([
+                                    $sheetId,
+                                    $originalName,
+                                    $storedName,
+                                    $mimeType,
+                                    $fileSize,
+                                    $docType
+                                ]);
+                                $uploadedFiles++;
+                            }
+                        }
+                    }
+                }
+
                 setFlash('success', 'Feuille d\'émargement créée avec succès !');
                 redirect(SITE_URL . '/pages/dashboard/view.php?id=' . $sheetId);
 
@@ -113,7 +184,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
                 <?php endif; ?>
 
-                <form method="POST" action="">
+                <form method="POST" action="" enctype="multipart/form-data">
                     <?= csrfField() ?>
 
                     <div class="mb-3">
@@ -165,6 +236,47 @@ require_once __DIR__ . '/../../includes/header.php';
                                placeholder="Ex: Salle de réunion A, Bâtiment principal...">
                     </div>
 
+                    <!-- Section Documents -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-paperclip me-1"></i>Documents joints
+                        </label>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div id="documents-container">
+                                    <div class="document-row mb-2">
+                                        <div class="row g-2 align-items-center">
+                                            <div class="col-md-5">
+                                                <input type="file" class="form-control form-control-sm" name="documents[]"
+                                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.odp,.jpg,.jpeg,.png,.gif">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <select class="form-select form-select-sm" name="document_types[]">
+                                                    <option value="agenda">Agenda / Ordre du jour</option>
+                                                    <option value="tdr">Termes de référence (TDR)</option>
+                                                    <option value="report">Rapport / Compte-rendu</option>
+                                                    <option value="other">Autre document</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3 text-end">
+                                                <button type="button" class="btn btn-outline-danger btn-sm remove-doc" style="display:none;">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add-document">
+                                    <i class="bi bi-plus-circle me-1"></i>Ajouter un document
+                                </button>
+                                <div class="form-text mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    Formats acceptés : PDF, Word, Excel, PowerPoint, images. Taille max : 10 Mo par fichier.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="bi bi-check-circle me-2"></i>Créer la feuille
@@ -178,5 +290,44 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('documents-container');
+    const addBtn = document.getElementById('add-document');
+
+    function updateRemoveButtons() {
+        const rows = container.querySelectorAll('.document-row');
+        rows.forEach((row, index) => {
+            const removeBtn = row.querySelector('.remove-doc');
+            if (removeBtn) {
+                removeBtn.style.display = rows.length > 1 ? 'inline-block' : 'none';
+            }
+        });
+    }
+
+    addBtn.addEventListener('click', function() {
+        const firstRow = container.querySelector('.document-row');
+        const newRow = firstRow.cloneNode(true);
+
+        // Reset values
+        newRow.querySelector('input[type="file"]').value = '';
+        newRow.querySelector('select').selectedIndex = 0;
+
+        container.appendChild(newRow);
+        updateRemoveButtons();
+    });
+
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-doc')) {
+            const row = e.target.closest('.document-row');
+            if (container.querySelectorAll('.document-row').length > 1) {
+                row.remove();
+                updateRemoveButtons();
+            }
+        }
+    });
+});
+</script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

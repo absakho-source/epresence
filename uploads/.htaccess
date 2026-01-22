@@ -1,0 +1,17 @@
+# Proteger le dossier uploads
+# Autoriser uniquement certains types de fichiers
+
+# Desactiver l'execution de scripts
+<FilesMatch "\.(php|php5|phtml|cgi|pl|py|sh|bash)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Autoriser les fichiers documents
+<FilesMatch "\.(pdf|doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|txt|jpg|jpeg|png|gif)$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Desactiver le listing du repertoire
+Options -Indexes
