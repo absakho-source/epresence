@@ -70,6 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (strlen($newPassword) < 8) {
                 $errors[] = "Le nouveau mot de passe doit contenir au moins 8 caractères.";
+            } elseif (!preg_match('/[A-Z]/', $newPassword)) {
+                $errors[] = "Le nouveau mot de passe doit contenir au moins une majuscule.";
+            } elseif (!preg_match('/[a-z]/', $newPassword)) {
+                $errors[] = "Le nouveau mot de passe doit contenir au moins une minuscule.";
+            } elseif (!preg_match('/[0-9]/', $newPassword)) {
+                $errors[] = "Le nouveau mot de passe doit contenir au moins un chiffre.";
             }
 
             if ($newPassword !== $confirmPassword) {
@@ -222,29 +228,16 @@ require_once __DIR__ . '/../../includes/header.php';
 
                             <div class="mb-4">
                                 <label for="structure" class="form-label">Structure / Direction</label>
-                                <select class="form-select" id="structure" name="structure">
-                                    <option value="">-- Sélectionnez votre structure --</option>
+                                <input type="text" class="form-control" id="structure" name="structure"
+                                       list="structures-list" placeholder="Tapez pour rechercher..."
+                                       value="<?= sanitize($user['structure'] ?? '') ?>">
+                                <datalist id="structures-list">
                                     <?php foreach ($structuresGrouped as $category => $structures): ?>
-                                        <?php
-                                        // Si une seule option et nom = catégorie, pas besoin d'optgroup
-                                        $singleOption = (count($structures) === 1 && reset($structures) === $category);
-                                        ?>
-                                        <?php if ($singleOption): ?>
-                                            <?php $code = key($structures); ?>
-                                            <option value="<?= sanitize($code) ?>" <?= $user['structure'] === $code ? 'selected' : '' ?>>
-                                                <?= sanitize($category) ?>
-                                            </option>
-                                        <?php else: ?>
-                                            <optgroup label="<?= sanitize($category) ?>">
-                                                <?php foreach ($structures as $code => $name): ?>
-                                                    <option value="<?= sanitize($code) ?>" <?= $user['structure'] === $code ? 'selected' : '' ?>>
-                                                        <?= sanitize($name) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endif; ?>
+                                        <?php foreach ($structures as $name): ?>
+                                    <option value="<?= sanitize($name) ?>">
+                                        <?php endforeach; ?>
                                     <?php endforeach; ?>
-                                </select>
+                                </datalist>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
@@ -276,7 +269,9 @@ require_once __DIR__ . '/../../includes/header.php';
                             <div class="mb-3">
                                 <label for="new_password" class="form-label">Nouveau mot de passe <span class="text-danger">*</span></label>
                                 <input type="password" class="form-control" id="new_password" name="new_password" minlength="8" required>
-                                <div class="form-text">Minimum 8 caractères.</div>
+                                <div class="form-text">
+                                    <small><i class="bi bi-info-circle me-1"></i>Min. 8 caractères avec majuscule, minuscule et chiffre</small>
+                                </div>
                             </div>
 
                             <div class="mb-4">

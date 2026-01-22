@@ -365,3 +365,83 @@ function notifyUserAccountReactivated($user) {
 
     return sendEmail($user['email'], $subject, getEmailTemplate($subject, $content));
 }
+
+/**
+ * Envoyer l'email de réinitialisation de mot de passe
+ */
+function sendPasswordResetEmail($user, $resetLink) {
+    $content = '
+        <h2>Réinitialisation de mot de passe</h2>
+        <p>Bonjour <strong>' . htmlspecialchars($user['first_name']) . '</strong>,</p>
+
+        <p>Vous avez demandé à réinitialiser votre mot de passe sur <strong>' . SITE_NAME . '</strong>.</p>
+
+        <div class="info-box">
+            <strong>Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe :</strong>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="' . htmlspecialchars($resetLink) . '" class="btn">
+                Réinitialiser mon mot de passe
+            </a>
+        </p>
+
+        <div class="warning-box">
+            <strong>Important :</strong><br>
+            Ce lien est valable pendant <strong>1 heure</strong> uniquement.<br>
+            Si vous n\'avez pas demandé cette réinitialisation, ignorez cet email.
+        </div>
+
+        <p style="font-size: 12px; color: #666;">
+            Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
+            <a href="' . htmlspecialchars($resetLink) . '">' . htmlspecialchars($resetLink) . '</a>
+        </p>
+    ';
+
+    $subject = '[' . SITE_NAME . '] Réinitialisation de votre mot de passe';
+
+    return sendEmail($user['email'], $subject, getEmailTemplate($subject, $content));
+}
+
+/**
+ * Notifier l'utilisateur que son mot de passe a été modifié
+ */
+function notifyPasswordChanged($user, $byAdmin = false) {
+    $content = '
+        <h2>Mot de passe modifié</h2>
+        <p>Bonjour <strong>' . htmlspecialchars($user['first_name']) . '</strong>,</p>
+
+        <div class="info-box">
+            ' . ($byAdmin
+                ? '<strong>Un administrateur</strong> a réinitialisé votre mot de passe.'
+                : 'Votre mot de passe sur <strong>' . SITE_NAME . '</strong> a été modifié avec succès.'
+            ) . '
+        </div>
+
+        <table class="details">
+            <tr>
+                <td>Date</td>
+                <td>' . date('d/m/Y à H:i') . '</td>
+            </tr>
+            <tr>
+                <td>Compte</td>
+                <td>' . htmlspecialchars($user['email']) . '</td>
+            </tr>
+        </table>
+
+        <div class="warning-box">
+            <strong>Ce n\'était pas vous ?</strong><br>
+            Contactez immédiatement l\'administrateur à : <a href="mailto:' . MAIL_ADMIN . '">' . MAIL_ADMIN . '</a>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="' . SITE_URL . '/pages/auth/login.php" class="btn">
+                Se connecter
+            </a>
+        </p>
+    ';
+
+    $subject = '[' . SITE_NAME . '] Votre mot de passe a été modifié';
+
+    return sendEmail($user['email'], $subject, getEmailTemplate($subject, $content));
+}

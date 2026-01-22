@@ -67,9 +67,15 @@ require_once __DIR__ . '/../../includes/header.php';
                                value="<?= sanitize($email) ?>" required autofocus>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="password" class="form-label">Mot de passe</label>
                         <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+
+                    <div class="mb-4 text-end">
+                        <a href="<?= SITE_URL ?>/pages/auth/forgot-password.php" class="small text-decoration-none">
+                            <i class="bi bi-key me-1"></i>Mot de passe oublié ?
+                        </a>
                     </div>
 
                     <div class="d-grid gap-2">
