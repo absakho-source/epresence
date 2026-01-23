@@ -270,14 +270,126 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 <?php endif; ?>
 
-<!-- Liste des feuilles -->
+<?php if ($canSeeAll && !empty($sheets)): ?>
+<!-- Liste des feuilles groupées par structure (admin/DG) -->
+<?php
+    // Grouper les feuilles par catégorie de structure
+    $sheetsByCategory = [];
+    foreach ($sheets as $sheet) {
+        $category = getStructureCategory($sheet['creator_structure'] ?? '');
+        if (empty($category)) $category = 'Autre';
+        if (!isset($sheetsByCategory[$category])) {
+            $sheetsByCategory[$category] = [];
+        }
+        $sheetsByCategory[$category][] = $sheet;
+    }
+
+    // Ordre des catégories
+    $categoryOrder = ['Direction générale', 'Division de la Planification', 'Division de la Prévision et des Études Économiques', 'Service des Ressources et du Partenariat', 'Autre'];
+    uksort($sheetsByCategory, function($a, $b) use ($categoryOrder) {
+        $posA = array_search($a, $categoryOrder);
+        $posB = array_search($b, $categoryOrder);
+        if ($posA === false) $posA = 999;
+        if ($posB === false) $posB = 999;
+        return $posA - $posB;
+    });
+?>
+<div class="accordion" id="sheetsAccordion">
+    <?php $accordionIndex = 0; foreach ($sheetsByCategory as $category => $categorySheets): $accordionIndex++; ?>
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button <?= $accordionIndex > 1 ? 'collapsed' : '' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $accordionIndex ?>">
+                <i class="bi bi-building me-2"></i>
+                <strong><?= sanitize($category) ?></strong>
+                <span class="badge bg-primary ms-2"><?= count($categorySheets) ?> feuille(s)</span>
+            </button>
+        </h2>
+        <div id="collapse<?= $accordionIndex ?>" class="accordion-collapse collapse <?= $accordionIndex === 1 ? 'show' : '' ?>" data-bs-parent="#sheetsAccordion">
+            <div class="accordion-body p-0">
+                <div class="list-group list-group-flush">
+                    <?php foreach ($categorySheets as $sheet): ?>
+                        <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <h6 class="mb-0 me-2"><?= sanitize($sheet['title']) ?></h6>
+                                        <?php
+                                            $statusLabels = array('active' => 'Active', 'closed' => 'Clôturée', 'archived' => 'Archivée');
+                                            $statusLabel = isset($statusLabels[$sheet['status']]) ? $statusLabels[$sheet['status']] : $sheet['status'];
+                                        ?>
+                                        <span class="badge badge-<?= $sheet['status'] ?>"><?= $statusLabel ?></span>
+                                    </div>
+                                    <div class="text-muted small mb-1">
+                                        <i class="bi bi-person me-1"></i>
+                                        <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+                                        <?php if (!empty($sheet['creator_structure'])): ?>
+                                            <span class="badge bg-secondary ms-1"><?= sanitize(getStructureName($sheet['creator_structure'])) ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-calendar-event me-1"></i>
+                                        <?= formatDateFr($sheet['event_date']) ?>
+                                        <?php if ($sheet['event_time']): ?>
+                                            à <?= formatTime($sheet['event_time']) ?>
+                                        <?php endif; ?>
+                                        <?php if ($sheet['location']): ?>
+                                            <span class="ms-2">
+                                                <i class="bi bi-geo-alt me-1"></i><?= sanitize($sheet['location']) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="mt-1">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="bi bi-vector-pen me-1"></i><?= $sheet['signature_count'] ?> signature(s)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="btn-group">
+                                    <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?>&structure=1"
+                                       class="btn btn-sm btn-outline-primary" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <?php if ($sheet['status'] === 'active'): ?>
+                                        <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
+                                           class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('Clôturer cette feuille ?')">
+                                            <?= csrfField() ?>
+                                            <input type="hidden" name="action" value="close">
+                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Clôturer">
+                                                <i class="bi bi-lock"></i>
+                                            </button>
+                                        </form>
+                                    <?php elseif ($sheet['status'] === 'closed'): ?>
+                                        <form method="POST" class="d-inline">
+                                            <?= csrfField() ?>
+                                            <input type="hidden" name="action" value="reopen">
+                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Réouvrir">
+                                                <i class="bi bi-unlock"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endforeach; ?>
+</div>
+
+<?php elseif (!$canSeeAll): ?>
+<!-- Liste des feuilles (utilisateur standard ou structure admin) -->
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-list-ul me-2"></i>
-            <?php if ($isAdmin || $isDGSuperAdmin): ?>
-                Toutes les feuilles DGPPE
-            <?php elseif ($isStructureAdmin): ?>
+            <?php if ($isStructureAdmin): ?>
                 Feuilles de la structure
             <?php else: ?>
                 Mes feuilles d'émargement
@@ -342,7 +454,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </span>
                                 </div>
                             </div>
-                            <?php $canManage = !empty($sheet['is_owner']) || $isAdmin; ?>
+                            <?php $canManage = !empty($sheet['is_owner']); ?>
                             <div class="btn-group">
                                 <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?><?= empty($sheet['is_owner']) ? '&structure=1' : '' ?>"
                                    class="btn btn-sm btn-outline-primary" title="Voir">
@@ -381,5 +493,19 @@ require_once __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
     </div>
 </div>
+<?php else: ?>
+<!-- Aucune feuille (admin) -->
+<div class="card">
+    <div class="card-body">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <h3>Aucune feuille pour le moment</h3>
+            <p>Aucune feuille d'émargement n'a été créée dans l'organisation.</p>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
