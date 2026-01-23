@@ -66,11 +66,18 @@ $ORGANIZATIONS = [
     ],
     'Ministère de l\'Économie, du Plan et de la Coopération' => [
         'Ministère de l\'Économie, du Plan et de la Coopération - MEPC',
-        'Direction générale de la Planification et des Politiques économiques - DGPPE',
-        'Direction de la Planification - DP',
-        'Direction de la Prévision et des Études économiques - DPEE',
-        'Centre d\'Études de Politiques pour le Développement - CEPOD',
         'Agence nationale de la Statistique et de la Démographie - ANSD',
+    ],
+    'DGPPE - Direction Générale de la Planification et des Politiques Économiques' => [
+        'Direction Générale - DG',
+        'Direction de l\'Administration et du Personnel - DAP',
+        'Direction de la Planification - DP',
+        'Direction de la Prévision et des Études Économiques - DPEE',
+        'Direction du Développement du Capital Humain - DDCH',
+        'Centre d\'Études de Politiques pour le Développement - CEPOD',
+        'Cellule de Suivi de l\'Intégration - CSI',
+        'Unité de Coordination et de Suivi de la Politique Économique - UCSPE',
+        'Services Régionaux de la Planification - SRP',
     ],
     'Ministère des Finances et du Budget' => [
         'Ministère des Finances et du Budget - MFB',
