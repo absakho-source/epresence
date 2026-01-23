@@ -284,14 +284,11 @@ require_once __DIR__ . '/../../includes/header.php';
         $sheetsByCategory[$category][] = $sheet;
     }
 
-    // Ordre des catégories
-    $categoryOrder = ['Direction générale', 'Division de la Planification', 'Division de la Prévision et des Études Économiques', 'Service des Ressources et du Partenariat', 'Services Régionaux de la Planification', 'UCSPE', 'Autre'];
-    uksort($sheetsByCategory, function($a, $b) use ($categoryOrder) {
-        $posA = array_search($a, $categoryOrder);
-        $posB = array_search($b, $categoryOrder);
-        if ($posA === false) $posA = 999;
-        if ($posB === false) $posB = 999;
-        return $posA - $posB;
+    // Trier les catégories alphabétiquement (sauf "Autre" qui va à la fin)
+    uksort($sheetsByCategory, function($a, $b) {
+        if ($a === 'Autre') return 1;
+        if ($b === 'Autre') return -1;
+        return strcmp($a, $b);
     });
 ?>
 <div class="accordion" id="sheetsAccordion">
