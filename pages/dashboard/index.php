@@ -291,21 +291,23 @@ require_once __DIR__ . '/../../includes/header.php';
         return strcmp($a, $b);
     });
 ?>
+<?php $maxVisible = 3; ?>
 <div class="accordion" id="sheetsAccordion">
     <?php $accordionIndex = 0; foreach ($sheetsByStructure as $structureName => $structureSheets): $accordionIndex++; ?>
+    <?php $totalSheets = count($structureSheets); $hasMore = $totalSheets > $maxVisible; ?>
     <div class="accordion-item">
         <h2 class="accordion-header">
             <button class="accordion-button <?= $accordionIndex > 1 ? 'collapsed' : '' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $accordionIndex ?>">
                 <i class="bi bi-building me-2"></i>
                 <strong><?= sanitize($structureName) ?></strong>
-                <span class="badge bg-primary ms-2"><?= count($structureSheets) ?> feuille(s)</span>
+                <span class="badge bg-primary ms-2"><?= $totalSheets ?> feuille(s)</span>
             </button>
         </h2>
         <div id="collapse<?= $accordionIndex ?>" class="accordion-collapse collapse <?= $accordionIndex === 1 ? 'show' : '' ?>" data-bs-parent="#sheetsAccordion">
             <div class="accordion-body p-0">
                 <div class="list-group list-group-flush">
-                    <?php foreach ($structureSheets as $sheet): ?>
-                        <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
+                    <?php $sheetIndex = 0; foreach ($structureSheets as $sheet): $sheetIndex++; ?>
+                        <div class="list-group-item sheet-item status-<?= $sheet['status'] ?> <?= $sheetIndex > $maxVisible ? 'more-sheets-' . $accordionIndex . ' d-none' : '' ?>">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center mb-1">
@@ -316,28 +318,17 @@ require_once __DIR__ . '/../../includes/header.php';
                                         ?>
                                         <span class="badge badge-<?= $sheet['status'] ?>"><?= $statusLabel ?></span>
                                     </div>
-                                    <div class="text-muted small mb-1">
-                                        <i class="bi bi-person me-1"></i>
-                                        <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
-                                        <?php if (!empty($sheet['creator_structure'])): ?>
-                                            <span class="badge bg-secondary ms-1"><?= sanitize(getStructureName($sheet['creator_structure'])) ?></span>
-                                        <?php endif; ?>
-                                    </div>
                                     <div class="text-muted small">
                                         <i class="bi bi-calendar-event me-1"></i>
                                         <?= formatDateFr($sheet['event_date']) ?>
                                         <?php if ($sheet['event_time']): ?>
                                             à <?= formatTime($sheet['event_time']) ?>
                                         <?php endif; ?>
-                                        <?php if ($sheet['location']): ?>
-                                            <span class="ms-2">
-                                                <i class="bi bi-geo-alt me-1"></i><?= sanitize($sheet['location']) ?>
-                                            </span>
-                                        <?php endif; ?>
-                                    </div>
-                                    <div class="mt-1">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="bi bi-vector-pen me-1"></i><?= $sheet['signature_count'] ?> signature(s)
+                                        <span class="ms-2">
+                                            <i class="bi bi-person me-1"></i><?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+                                        </span>
+                                        <span class="ms-2">
+                                            <i class="bi bi-vector-pen me-1"></i><?= $sheet['signature_count'] ?>
                                         </span>
                                     </div>
                                 </div>
@@ -347,10 +338,6 @@ require_once __DIR__ . '/../../includes/header.php';
                                         <i class="bi bi-eye"></i>
                                     </a>
                                     <?php if ($sheet['status'] === 'active'): ?>
-                                        <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
-                                           class="btn btn-sm btn-outline-secondary" title="Modifier">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
                                         <form method="POST" class="d-inline" onsubmit="return confirm('Clôturer cette feuille ?')">
                                             <?= csrfField() ?>
                                             <input type="hidden" name="action" value="close">
@@ -373,12 +360,37 @@ require_once __DIR__ . '/../../includes/header.php';
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    <?php if ($hasMore): ?>
+                        <div class="list-group-item text-center py-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary show-more-btn" data-target="more-sheets-<?= $accordionIndex ?>">
+                                <i class="bi bi-chevron-down me-1"></i>Voir tout (<?= $totalSheets - $maxVisible ?> de plus)
+                            </button>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
     <?php endforeach; ?>
 </div>
+
+<script>
+document.querySelectorAll('.show-more-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        var target = this.getAttribute('data-target');
+        var items = document.querySelectorAll('.' + target);
+        var isHidden = items[0].classList.contains('d-none');
+        items.forEach(function(item) {
+            item.classList.toggle('d-none');
+        });
+        if (isHidden) {
+            this.innerHTML = '<i class="bi bi-chevron-up me-1"></i>Réduire';
+        } else {
+            this.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Voir tout (' + items.length + ' de plus)';
+        }
+    });
+});
+</script>
 
 <?php elseif (!$canSeeAll): ?>
 <!-- Liste des feuilles (utilisateur standard ou structure admin) -->
