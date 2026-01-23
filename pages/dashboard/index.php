@@ -48,7 +48,13 @@ $isDGSuperAdmin = false;
 $structureCodes = array();
 if ($isStructureAdmin) {
     $userCategory = getStructureCategory($currentUser['structure']);
-    $isDGSuperAdmin = ($userCategory === 'Direction générale');
+    $normalizedStructure = normalizeStructureName($currentUser['structure']);
+
+    // Super-admin de la Direction Générale : voit TOUTE la DGPPE
+    $isDGSuperAdmin = ($userCategory === 'DGPPE' &&
+                       (strpos($normalizedStructure, 'Direction Générale') === 0 ||
+                        $normalizedStructure === 'Direction Générale - DG'));
+
     if (!$isDGSuperAdmin) {
         $structureCodes = getStructureCodesInCategory($currentUser['structure']);
     }

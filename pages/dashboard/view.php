@@ -35,9 +35,14 @@ $canViewAsGlobalAdmin = isAdmin();
 
 if (!$isOwner && $isStructureAdmin) {
     $userCategory = getStructureCategory($currentUser['structure']);
+    $normalizedStructure = normalizeStructureName($currentUser['structure']);
 
     // Super-utilisateur Direction générale: peut voir TOUT
-    if ($userCategory === 'Direction générale') {
+    $isDGSuperAdmin = ($userCategory === 'DGPPE' &&
+                       (strpos($normalizedStructure, 'Direction Générale') === 0 ||
+                        $normalizedStructure === 'Direction Générale - DG'));
+
+    if ($isDGSuperAdmin) {
         $canViewAsDGAdmin = true;
     } else {
         // Vérifier si le créateur appartient à la même catégorie de structure

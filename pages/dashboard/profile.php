@@ -27,7 +27,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $firstName = trim($_POST['first_name'] ?? '');
             $lastName = trim($_POST['last_name'] ?? '');
             $functionTitle = trim($_POST['function_title'] ?? '');
-            $structure = trim($_POST['structure'] ?? '');
 
             if (empty($firstName)) {
                 $errors[] = "Le prénom est obligatoire.";
@@ -38,8 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (empty($errors)) {
                 try {
-                    $stmt = db()->prepare("UPDATE users SET first_name = ?, last_name = ?, function_title = ?, structure = ? WHERE id = ?");
-                    $stmt->execute([$firstName, $lastName, $functionTitle ?: null, $structure ?: null, $user['id']]);
+                    // Les utilisateurs ne peuvent pas modifier leur structure - seul un admin peut le faire
+                    $stmt = db()->prepare("UPDATE users SET first_name = ?, last_name = ?, function_title = ? WHERE id = ?");
+                    $stmt->execute([$firstName, $lastName, $functionTitle ?: null, $user['id']]);
 
                     // Mettre à jour la session
                     $_SESSION['user_name'] = $firstName . ' ' . $lastName;
@@ -228,14 +228,9 @@ require_once __DIR__ . '/../../includes/header.php';
 
                             <div class="mb-4">
                                 <label for="structure" class="form-label">Structure / Direction</label>
-                                <select class="form-select" id="structure" name="structure">
-                                    <option value="">-- Sélectionnez votre structure --</option>
-                                    <?php foreach ($dgppeStructures as $structureName): ?>
-                                        <option value="<?= sanitize($structureName) ?>" <?= ($user['structure'] ?? '') === $structureName ? 'selected' : '' ?>>
-                                            <?= sanitize($structureName) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+                                <input type="text" class="form-control" id="structure"
+                                       value="<?= $user['structure'] ? sanitize($user['structure']) : 'Non définie' ?>" disabled>
+                                <div class="form-text">Seul un administrateur peut modifier votre structure.</div>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
