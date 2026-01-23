@@ -430,7 +430,10 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <td>
                                         <small><?= sanitize($sig['email']) ?></small>
                                         <?php if ($sig['phone']): ?>
-                                            <br><small class="text-muted"><?= formatPhone($sig['phone']) ?></small>
+                                            <br><small class="text-muted"><i class="bi bi-telephone me-1"></i><?= formatPhone($sig['phone']) ?></small>
+                                        <?php endif; ?>
+                                        <?php if (!empty($sig['phone_secondary'])): ?>
+                                            <br><small class="text-muted"><i class="bi bi-telephone me-1"></i><?= formatPhone($sig['phone_secondary']) ?></small>
                                         <?php endif; ?>
                                     </td>
                                     <td>

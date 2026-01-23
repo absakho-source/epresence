@@ -318,7 +318,7 @@ if (file_exists($logoMepcPath)) {
                 <td><?= htmlspecialchars($sig['last_name']) ?></td>
                 <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
                 <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
-                <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?></td>
+                <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
                 <td><?= htmlspecialchars($sig['email']) ?></td>
                 <td class="col-signature"><img src="<?= $sig['signature_data'] ?>" class="signature-img" /></td>
             </tr>

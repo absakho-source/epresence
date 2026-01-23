@@ -255,3 +255,34 @@ function areStructuresInSameCategory($struct1, $struct2) {
     $cat2 = getStructureCategory($struct2);
     return $cat1 !== null && $cat1 === $cat2;
 }
+
+/**
+ * Mapping des anciens acronymes DGPPE vers les noms complets
+ */
+$DGPPE_ACRONYMS_MAP = [
+    'DG' => 'Direction Générale',
+    'Direction générale' => 'Direction Générale',
+    'DAP' => 'Direction de l\'Administration et du Personnel',
+    'DP' => 'Direction de la Planification',
+    'DPEE' => 'Direction de la Prévision et des Études Économiques',
+    'DDCH' => 'Direction du Développement du Capital Humain',
+    'CEPOD' => 'Centre d\'Études de Politiques pour le Développement',
+    'CSI' => 'Cellule de Suivi de l\'Intégration',
+    'UCSPE' => 'Unité de Coordination et de Suivi de la Politique Économique',
+    'SRP' => 'Services Régionaux de la Planification',
+];
+
+/**
+ * Normaliser le nom d'une structure (convertir les anciens acronymes en noms complets)
+ */
+function normalizeStructureName($structure) {
+    global $DGPPE_ACRONYMS_MAP;
+    if (empty($structure)) {
+        return '';
+    }
+    // Si c'est un ancien acronyme, le convertir
+    if (isset($DGPPE_ACRONYMS_MAP[$structure])) {
+        return $DGPPE_ACRONYMS_MAP[$structure];
+    }
+    return $structure;
+}

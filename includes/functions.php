@@ -7,6 +7,9 @@
  * Nettoyer et sécuriser une chaîne de caractères
  */
 function sanitize($input) {
+    if ($input === null) {
+        return '';
+    }
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
@@ -204,6 +207,9 @@ function isValidPhone($phone) {
  * Formater un numéro de téléphone
  */
 function formatPhone($phone) {
+    if ($phone === null || $phone === '') {
+        return '';
+    }
     $phone = preg_replace('/[\s\.\-]/', '', $phone);
     if (strlen($phone) === 10) {
         return implode(' ', str_split($phone, 2));

@@ -15,11 +15,25 @@ if (!$isAdmin) {
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
 
-$structureName = $_GET['structure'] ?? '';
-if (empty($structureName)) {
+$structureParam = $_GET['structure'] ?? '';
+if (empty($structureParam)) {
     setFlash('error', 'Structure non spécifiée.');
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
+
+// Normaliser le nom de structure pour l'affichage
+$structureName = normalizeStructureName($structureParam);
+
+// Créer la liste des valeurs à chercher (ancien acronyme + nom complet)
+$structureVariants = [$structureParam, $structureName];
+// Ajouter aussi les anciens acronymes qui correspondent à ce nom complet
+global $DGPPE_ACRONYMS_MAP;
+foreach ($DGPPE_ACRONYMS_MAP as $acronym => $fullName) {
+    if ($fullName === $structureName && !in_array($acronym, $structureVariants)) {
+        $structureVariants[] = $acronym;
+    }
+}
+$structureVariants = array_unique($structureVariants);
 
 $userId = getCurrentUserId();
 
@@ -48,7 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
     redirect(SITE_URL . '/pages/dashboard/structure-sheets.php?structure=' . urlencode($structureName));
 }
 
-// Récupérer les feuilles de cette structure
+// Récupérer les feuilles de cette structure (en cherchant toutes les variantes du nom)
+$placeholders = implode(',', array_fill(0, count($structureVariants), '?'));
 $sheetsQuery = db()->prepare("
     SELECT s.*,
            u.first_name as creator_first_name,
@@ -57,10 +72,10 @@ $sheetsQuery = db()->prepare("
            (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count
     FROM sheets s
     JOIN users u ON s.user_id = u.id
-    WHERE u.structure = ?
+    WHERE u.structure IN ($placeholders)
     ORDER BY s.created_at DESC
 ");
-$sheetsQuery->execute([$structureName]);
+$sheetsQuery->execute($structureVariants);
 $sheets = $sheetsQuery->fetchAll();
 
 $pageTitle = 'Feuilles - ' . $structureName;

@@ -273,10 +273,12 @@ require_once __DIR__ . '/../../includes/header.php';
 <?php if ($canSeeAll && !empty($sheets)): ?>
 <!-- Liste des feuilles groupées par structure (admin/DG) -->
 <?php
-    // Grouper les feuilles par structure du créateur
+    // Grouper les feuilles par structure du créateur (avec normalisation des noms)
     $sheetsByStructure = [];
     foreach ($sheets as $sheet) {
-        $structure = $sheet['creator_structure'] ?? '';
+        $rawStructure = $sheet['creator_structure'] ?? '';
+        // Normaliser le nom de la structure (convertir les anciens acronymes en noms complets)
+        $structure = normalizeStructureName($rawStructure);
         if (empty($structure)) $structure = 'Autre';
         if (!isset($sheetsByStructure[$structure])) {
             $sheetsByStructure[$structure] = [];
