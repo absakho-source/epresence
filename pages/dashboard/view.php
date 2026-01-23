@@ -412,8 +412,8 @@ require_once __DIR__ . '/../../includes/header.php';
                             <tr>
                                 <th style="width: 30px;">#</th>
                                 <th>Nom complet</th>
-                                <th>Fonction</th>
                                 <th>Structure</th>
+                                <th>Fonction</th>
                                 <th>Contacts</th>
                                 <th style="width: 80px;">Signature</th>
                             </tr>
@@ -425,8 +425,8 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <td>
                                         <strong><?= sanitize($sig['first_name']) ?> <?= sanitize($sig['last_name']) ?></strong>
                                     </td>
-                                    <td><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
                                     <td><?= $sig['structure'] ? sanitize($sig['structure']) : '-' ?></td>
+                                    <td><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
                                     <td>
                                         <small><?= sanitize($sig['email']) ?></small>
                                         <?php if ($sig['phone']): ?>
