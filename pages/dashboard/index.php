@@ -306,8 +306,8 @@ require_once __DIR__ . '/../../includes/header.php';
         <div id="collapse<?= $accordionIndex ?>" class="accordion-collapse collapse <?= $accordionIndex === 1 ? 'show' : '' ?>" data-bs-parent="#sheetsAccordion">
             <div class="accordion-body p-0">
                 <div class="list-group list-group-flush">
-                    <?php $sheetIndex = 0; foreach ($structureSheets as $sheet): $sheetIndex++; ?>
-                        <div class="list-group-item sheet-item status-<?= $sheet['status'] ?> <?= $sheetIndex > $maxVisible ? 'more-sheets-' . $accordionIndex . ' d-none' : '' ?>">
+                    <?php $sheetIndex = 0; foreach ($structureSheets as $sheet): $sheetIndex++; if ($sheetIndex > $maxVisible) break; ?>
+                        <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
                                     <div class="d-flex align-items-center mb-1">
@@ -362,9 +362,9 @@ require_once __DIR__ . '/../../includes/header.php';
                     <?php endforeach; ?>
                     <?php if ($hasMore): ?>
                         <div class="list-group-item text-center py-2">
-                            <button type="button" class="btn btn-sm btn-outline-primary show-more-btn" data-target="more-sheets-<?= $accordionIndex ?>">
-                                <i class="bi bi-chevron-down me-1"></i>Voir tout (<?= $totalSheets - $maxVisible ?> de plus)
-                            </button>
+                            <a href="<?= SITE_URL ?>/pages/dashboard/structure-sheets.php?structure=<?= urlencode($structureName) ?>" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-arrow-right me-1"></i>Voir tout (<?= $totalSheets - $maxVisible ?> de plus)
+                            </a>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -373,24 +373,6 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
     <?php endforeach; ?>
 </div>
-
-<script>
-document.querySelectorAll('.show-more-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        var target = this.getAttribute('data-target');
-        var items = document.querySelectorAll('.' + target);
-        var isHidden = items[0].classList.contains('d-none');
-        items.forEach(function(item) {
-            item.classList.toggle('d-none');
-        });
-        if (isHidden) {
-            this.innerHTML = '<i class="bi bi-chevron-up me-1"></i>Réduire';
-        } else {
-            this.innerHTML = '<i class="bi bi-chevron-down me-1"></i>Voir tout (' + items.length + ' de plus)';
-        }
-    });
-});
-</script>
 
 <?php elseif (!$canSeeAll): ?>
 <!-- Liste des feuilles (utilisateur standard ou structure admin) -->
