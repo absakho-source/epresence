@@ -57,7 +57,7 @@ function getCurrentUserRole() {
 /**
  * Inscrire un nouvel utilisateur
  */
-function registerUser($email, $password, $firstName, $lastName, $structure = null) {
+function registerUser($email, $password, $firstName, $lastName, $structure = null, $functionTitle = null) {
     // Validation
     $errors = [];
 
@@ -98,14 +98,15 @@ function registerUser($email, $password, $firstName, $lastName, $structure = nul
     // Insertion avec statut 'pending' (en attente de validation admin)
     try {
         $stmt = db()->prepare("
-            INSERT INTO users (email, password, first_name, last_name, structure, status)
-            VALUES (?, ?, ?, ?, ?, 'pending')
+            INSERT INTO users (email, password, first_name, last_name, function_title, structure, status)
+            VALUES (?, ?, ?, ?, ?, ?, 'pending')
         ");
         $stmt->execute([
             strtolower(trim($email)),
             $hashedPassword,
             trim($firstName),
             trim($lastName),
+            $functionTitle ? trim($functionTitle) : null,
             $structure ? trim($structure) : null
         ]);
 
@@ -117,6 +118,7 @@ function registerUser($email, $password, $firstName, $lastName, $structure = nul
             'email' => strtolower(trim($email)),
             'first_name' => trim($firstName),
             'last_name' => trim($lastName),
+            'function_title' => $functionTitle ? trim($functionTitle) : null,
             'structure' => $structure ? trim($structure) : null
         ];
 

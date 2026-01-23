@@ -16,6 +16,7 @@ $errors = array();
 $email = '';
 $firstName = '';
 $lastName = '';
+$functionTitle = '';
 $structure = '';
 
 // Traitement du formulaire
@@ -29,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $passwordConfirm = $_POST['password_confirm'];
         $firstName = trim($_POST['first_name']);
         $lastName = trim($_POST['last_name']);
+        $functionTitle = trim($_POST['function_title'] ?? '');
         $structure = trim($_POST['structure']);
 
         // Vérifier la confirmation du mot de passe
@@ -37,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $result = registerUser($email, $password, $firstName, $lastName, $structure);
+            $result = registerUser($email, $password, $firstName, $lastName, $structure, $functionTitle);
 
             if ($result['success']) {
                 setFlash('info', 'Inscription enregistrée ! Votre compte est en attente de validation par un administrateur. Vous recevrez un email une fois votre compte activé.');
@@ -118,6 +120,13 @@ require_once __DIR__ . '/../../includes/header.php';
                                 </option>
                             <?php endforeach; ?>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="function_title" class="form-label">Fonction / Poste</label>
+                        <input type="text" class="form-control" id="function_title" name="function_title"
+                               value="<?= sanitize($functionTitle) ?>"
+                               placeholder="Ex: Chef de bureau, Analyste, Coordonnateur...">
                     </div>
 
                     <div class="mb-3">

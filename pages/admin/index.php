@@ -7,8 +7,8 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/structures.php';
 requireAdmin();
 
-// Charger les structures
-$structuresGrouped = getStructuresGrouped();
+// Charger les structures DGPPE uniquement
+$dgppeStructures = getDGPPEStructures();
 
 // Traitement des actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -229,6 +229,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <th>Nom</th>
                                     <th>Email</th>
                                     <th>Structure</th>
+                                    <th>Fonction</th>
                                     <th>Date demande</th>
                                     <th class="text-end">Actions</th>
                                 </tr>
@@ -243,6 +244,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                             </a>
                                         </td>
                                         <td><small><?= $pUser['structure'] ? sanitize(getStructureName($pUser['structure'])) : '<em class="text-muted">Non renseignée</em>' ?></small></td>
+                                        <td><small><?= !empty($pUser['function_title']) ? sanitize($pUser['function_title']) : '<em class="text-muted">-</em>' ?></small></td>
                                         <td><small><?= formatDateFr($pUser['created_at'], true) ?></small></td>
                                         <td class="text-end">
                                             <!-- Bouton Approuver -->
@@ -499,18 +501,8 @@ require_once __DIR__ . '/../../includes/header.php';
                         <label for="editStructure" class="form-label">Structure</label>
                         <select class="form-select" id="editStructure" name="structure">
                             <option value="">-- Aucune --</option>
-                            <?php foreach ($structuresGrouped as $category => $structures): ?>
-                                <?php $singleOption = (count($structures) === 1 && reset($structures) === $category); ?>
-                                <?php if ($singleOption): ?>
-                                    <?php $code = key($structures); ?>
-                                    <option value="<?= sanitize($code) ?>"><?= sanitize($category) ?></option>
-                                <?php else: ?>
-                                    <optgroup label="<?= sanitize($category) ?>">
-                                        <?php foreach ($structures as $code => $name): ?>
-                                            <option value="<?= sanitize($code) ?>"><?= sanitize($name) ?></option>
-                                        <?php endforeach; ?>
-                                    </optgroup>
-                                <?php endif; ?>
+                            <?php foreach ($dgppeStructures as $structureName): ?>
+                                <option value="<?= sanitize($structureName) ?>"><?= sanitize($structureName) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>

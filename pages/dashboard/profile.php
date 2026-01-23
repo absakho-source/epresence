@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
 $user = getCurrentUser();
-$structuresGrouped = getStructuresGrouped();
+$dgppeStructures = getDGPPEStructures();
 
 $errors = [];
 $success = false;
@@ -228,16 +228,14 @@ require_once __DIR__ . '/../../includes/header.php';
 
                             <div class="mb-4">
                                 <label for="structure" class="form-label">Structure / Direction</label>
-                                <input type="text" class="form-control" id="structure" name="structure"
-                                       list="structures-list" placeholder="Tapez pour rechercher..."
-                                       value="<?= sanitize($user['structure'] ?? '') ?>">
-                                <datalist id="structures-list">
-                                    <?php foreach ($structuresGrouped as $category => $structures): ?>
-                                        <?php foreach ($structures as $name): ?>
-                                    <option value="<?= sanitize($name) ?>">
-                                        <?php endforeach; ?>
+                                <select class="form-select" id="structure" name="structure">
+                                    <option value="">-- Sélectionnez votre structure --</option>
+                                    <?php foreach ($dgppeStructures as $structureName): ?>
+                                        <option value="<?= sanitize($structureName) ?>" <?= ($user['structure'] ?? '') === $structureName ? 'selected' : '' ?>>
+                                            <?= sanitize($structureName) ?>
+                                        </option>
                                     <?php endforeach; ?>
-                                </datalist>
+                                </select>
                             </div>
 
                             <button type="submit" class="btn btn-primary">
