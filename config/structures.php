@@ -227,8 +227,10 @@ function getStructureCategory($structure) {
     if (empty($structure)) {
         return null;
     }
+    // Normaliser d'abord (convertir les anciens acronymes)
+    $normalizedStructure = normalizeStructureName($structure);
     foreach ($ORGANIZATIONS as $category => $structures) {
-        if (in_array($structure, $structures)) {
+        if (in_array($normalizedStructure, $structures) || in_array($structure, $structures)) {
             return $category;
         }
     }

@@ -239,7 +239,11 @@ require_once __DIR__ . '/../../includes/header.php';
             <?php if ($isAdmin || $isDGSuperAdmin): ?>
                 - Vous voyez <strong>TOUTES</strong> les feuilles de la DGPPE
             <?php else: ?>
-                - Vous voyez toutes les feuilles de: <?= sanitize(getStructureCategory($currentUser['structure'])) ?>
+                <?php
+                    $structureCategory = getStructureCategory($currentUser['structure']);
+                    $displayStructure = $structureCategory ?: normalizeStructureName($currentUser['structure']);
+                ?>
+                - Vous voyez toutes les feuilles de: <strong><?= sanitize($displayStructure) ?></strong>
             <?php endif; ?>
         </span>
     </div>
@@ -377,34 +381,43 @@ require_once __DIR__ . '/../../includes/header.php';
 </div>
 
 <?php elseif (!$canSeeAll): ?>
-<!-- Liste des feuilles (utilisateur standard ou structure admin) -->
-<div class="card">
+<?php
+    // Séparer les feuilles propres de celles de la structure
+    $mySheets = [];
+    $structureSheets = [];
+    foreach ($sheets as $sheet) {
+        if (!empty($sheet['is_owner'])) {
+            $mySheets[] = $sheet;
+        } else {
+            $structureSheets[] = $sheet;
+        }
+    }
+?>
+
+<!-- Mes feuilles personnelles -->
+<div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
-            <i class="bi bi-list-ul me-2"></i>
-            <?php if ($isStructureAdmin): ?>
-                Feuilles de la structure
-            <?php else: ?>
-                Mes feuilles d'émargement
-            <?php endif; ?>
+            <i class="bi bi-person-circle me-2"></i>Mes feuilles d'émargement
+            <span class="badge bg-primary ms-2"><?= count($mySheets) ?></span>
         </h5>
     </div>
     <div class="card-body">
-        <?php if (empty($sheets)): ?>
-            <div class="empty-state">
+        <?php if (empty($mySheets)): ?>
+            <div class="empty-state py-4">
                 <div class="empty-state-icon">
                     <i class="bi bi-file-earmark-text"></i>
                 </div>
-                <h3>Aucune feuille pour le moment</h3>
-                <p>Créez votre première feuille d'émargement pour commencer.</p>
-                <a href="<?= SITE_URL ?>/pages/dashboard/create.php" class="btn btn-primary">
+                <h5>Aucune feuille personnelle</h5>
+                <p class="mb-3">Créez votre première feuille d'émargement.</p>
+                <a href="<?= SITE_URL ?>/pages/dashboard/create.php" class="btn btn-primary btn-sm">
                     <i class="bi bi-plus-circle me-2"></i>Créer une feuille
                 </a>
             </div>
         <?php else: ?>
             <div class="list-group list-group-flush">
-                <?php foreach ($sheets as $sheet): ?>
-                    <div class="list-group-item sheet-item status-<?= $sheet['status'] ?> <?= empty($sheet['is_owner']) ? 'border-start border-warning border-3' : '' ?>">
+                <?php foreach ($mySheets as $sheet): ?>
+                    <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
                         <div class="d-flex justify-content-between align-items-start">
                             <div class="flex-grow-1">
                                 <div class="d-flex align-items-center mb-1">
@@ -414,21 +427,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                         $statusLabel = isset($statusLabels[$sheet['status']]) ? $statusLabels[$sheet['status']] : $sheet['status'];
                                     ?>
                                     <span class="badge badge-<?= $sheet['status'] ?>"><?= $statusLabel ?></span>
-                                    <?php if (empty($sheet['is_owner'])): ?>
-                                        <span class="badge bg-warning text-dark ms-1" title="Créée par un membre de votre structure">
-                                            <i class="bi bi-people me-1"></i>Structure
-                                        </span>
-                                    <?php endif; ?>
                                 </div>
-                                <?php if (empty($sheet['is_owner']) && isset($sheet['creator_first_name'])): ?>
-                                    <div class="text-muted small mb-1">
-                                        <i class="bi bi-person me-1"></i>
-                                        Créée par <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
-                                        <?php if (!empty($sheet['creator_structure'])): ?>
-                                            (<?= sanitize(getStructureName($sheet['creator_structure'])) ?>)
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
                                 <div class="text-muted small">
                                     <i class="bi bi-calendar-event me-1"></i>
                                     <?= formatDateFr($sheet['event_date']) ?>
@@ -447,36 +446,33 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </span>
                                 </div>
                             </div>
-                            <?php $canManage = !empty($sheet['is_owner']); ?>
                             <div class="btn-group">
-                                <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?><?= empty($sheet['is_owner']) ? '&structure=1' : '' ?>"
+                                <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?>"
                                    class="btn btn-sm btn-outline-primary" title="Voir">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <?php if ($canManage): ?>
-                                    <?php if ($sheet['status'] === 'active'): ?>
-                                        <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
-                                           class="btn btn-sm btn-outline-secondary" title="Modifier">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <form method="POST" class="d-inline" onsubmit="return confirm('Clôturer cette feuille ?')">
-                                            <?= csrfField() ?>
-                                            <input type="hidden" name="action" value="close">
-                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-warning" title="Clôturer">
-                                                <i class="bi bi-lock"></i>
-                                            </button>
-                                        </form>
-                                    <?php elseif ($sheet['status'] === 'closed'): ?>
-                                        <form method="POST" class="d-inline">
-                                            <?= csrfField() ?>
-                                            <input type="hidden" name="action" value="reopen">
-                                            <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Réouvrir">
-                                                <i class="bi bi-unlock"></i>
-                                            </button>
-                                        </form>
-                                    <?php endif; ?>
+                                <?php if ($sheet['status'] === 'active'): ?>
+                                    <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
+                                       class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Clôturer cette feuille ?')">
+                                        <?= csrfField() ?>
+                                        <input type="hidden" name="action" value="close">
+                                        <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="Clôturer">
+                                            <i class="bi bi-lock"></i>
+                                        </button>
+                                    </form>
+                                <?php elseif ($sheet['status'] === 'closed'): ?>
+                                    <form method="POST" class="d-inline">
+                                        <?= csrfField() ?>
+                                        <input type="hidden" name="action" value="reopen">
+                                        <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Réouvrir">
+                                            <i class="bi bi-unlock"></i>
+                                        </button>
+                                    </form>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -486,6 +482,70 @@ require_once __DIR__ . '/../../includes/header.php';
         <?php endif; ?>
     </div>
 </div>
+
+<?php if ($isStructureAdmin && !empty($structureSheets)): ?>
+<!-- Feuilles de la structure -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center bg-warning bg-opacity-10">
+        <h5 class="mb-0">
+            <i class="bi bi-people me-2"></i>Feuilles de la structure
+            <span class="badge bg-warning text-dark ms-2"><?= count($structureSheets) ?></span>
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="list-group list-group-flush">
+            <?php foreach ($structureSheets as $sheet): ?>
+                <div class="list-group-item sheet-item status-<?= $sheet['status'] ?> border-start border-warning border-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <h6 class="mb-0 me-2"><?= sanitize($sheet['title']) ?></h6>
+                                <?php
+                                    $statusLabels = array('active' => 'Active', 'closed' => 'Clôturée', 'archived' => 'Archivée');
+                                    $statusLabel = isset($statusLabels[$sheet['status']]) ? $statusLabels[$sheet['status']] : $sheet['status'];
+                                ?>
+                                <span class="badge badge-<?= $sheet['status'] ?>"><?= $statusLabel ?></span>
+                            </div>
+                            <?php if (isset($sheet['creator_first_name'])): ?>
+                                <div class="text-muted small mb-1">
+                                    <i class="bi bi-person me-1"></i>
+                                    Créée par <?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+                                    <?php if (!empty($sheet['creator_structure'])): ?>
+                                        (<?= sanitize(normalizeStructureName($sheet['creator_structure'])) ?>)
+                                    <?php endif; ?>
+                                </div>
+                            <?php endif; ?>
+                            <div class="text-muted small">
+                                <i class="bi bi-calendar-event me-1"></i>
+                                <?= formatDateFr($sheet['event_date']) ?>
+                                <?php if ($sheet['event_time']): ?>
+                                    à <?= formatTime($sheet['event_time']) ?>
+                                <?php endif; ?>
+                                <?php if ($sheet['location']): ?>
+                                    <span class="ms-2">
+                                        <i class="bi bi-geo-alt me-1"></i><?= sanitize($sheet['location']) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="mt-1">
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-vector-pen me-1"></i><?= $sheet['signature_count'] ?> signature(s)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?>&structure=1"
+                               class="btn btn-sm btn-outline-primary" title="Voir">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 <?php else: ?>
 <!-- Aucune feuille (admin) -->
 <div class="card">
