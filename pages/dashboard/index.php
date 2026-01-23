@@ -285,7 +285,7 @@ require_once __DIR__ . '/../../includes/header.php';
     }
 
     // Ordre des catégories
-    $categoryOrder = ['Direction générale', 'Division de la Planification', 'Division de la Prévision et des Études Économiques', 'Service des Ressources et du Partenariat', 'Autre'];
+    $categoryOrder = ['Direction générale', 'Division de la Planification', 'Division de la Prévision et des Études Économiques', 'Service des Ressources et du Partenariat', 'Services Régionaux de la Planification', 'UCSPE', 'Autre'];
     uksort($sheetsByCategory, function($a, $b) use ($categoryOrder) {
         $posA = array_search($a, $categoryOrder);
         $posB = array_search($b, $categoryOrder);
