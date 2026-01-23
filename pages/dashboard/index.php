@@ -273,38 +273,38 @@ require_once __DIR__ . '/../../includes/header.php';
 <?php if ($canSeeAll && !empty($sheets)): ?>
 <!-- Liste des feuilles groupées par structure (admin/DG) -->
 <?php
-    // Grouper les feuilles par catégorie de structure
-    $sheetsByCategory = [];
+    // Grouper les feuilles par structure du créateur
+    $sheetsByStructure = [];
     foreach ($sheets as $sheet) {
-        $category = getStructureCategory($sheet['creator_structure'] ?? '');
-        if (empty($category)) $category = 'Autre';
-        if (!isset($sheetsByCategory[$category])) {
-            $sheetsByCategory[$category] = [];
+        $structure = $sheet['creator_structure'] ?? '';
+        if (empty($structure)) $structure = 'Autre';
+        if (!isset($sheetsByStructure[$structure])) {
+            $sheetsByStructure[$structure] = [];
         }
-        $sheetsByCategory[$category][] = $sheet;
+        $sheetsByStructure[$structure][] = $sheet;
     }
 
-    // Trier les catégories alphabétiquement (sauf "Autre" qui va à la fin)
-    uksort($sheetsByCategory, function($a, $b) {
+    // Trier les structures alphabétiquement (sauf "Autre" qui va à la fin)
+    uksort($sheetsByStructure, function($a, $b) {
         if ($a === 'Autre') return 1;
         if ($b === 'Autre') return -1;
         return strcmp($a, $b);
     });
 ?>
 <div class="accordion" id="sheetsAccordion">
-    <?php $accordionIndex = 0; foreach ($sheetsByCategory as $category => $categorySheets): $accordionIndex++; ?>
+    <?php $accordionIndex = 0; foreach ($sheetsByStructure as $structureName => $structureSheets): $accordionIndex++; ?>
     <div class="accordion-item">
         <h2 class="accordion-header">
             <button class="accordion-button <?= $accordionIndex > 1 ? 'collapsed' : '' ?>" type="button" data-bs-toggle="collapse" data-bs-target="#collapse<?= $accordionIndex ?>">
                 <i class="bi bi-building me-2"></i>
-                <strong><?= sanitize($category) ?></strong>
-                <span class="badge bg-primary ms-2"><?= count($categorySheets) ?> feuille(s)</span>
+                <strong><?= sanitize($structureName) ?></strong>
+                <span class="badge bg-primary ms-2"><?= count($structureSheets) ?> feuille(s)</span>
             </button>
         </h2>
         <div id="collapse<?= $accordionIndex ?>" class="accordion-collapse collapse <?= $accordionIndex === 1 ? 'show' : '' ?>" data-bs-parent="#sheetsAccordion">
             <div class="accordion-body p-0">
                 <div class="list-group list-group-flush">
-                    <?php foreach ($categorySheets as $sheet): ?>
+                    <?php foreach ($structureSheets as $sheet): ?>
                         <div class="list-group-item sheet-item status-<?= $sheet['status'] ?>">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
