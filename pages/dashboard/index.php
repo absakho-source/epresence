@@ -10,6 +10,7 @@ requireLogin();
 $userId = getCurrentUserId();
 $currentUser = getCurrentUser();
 $isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
+$isAdmin = ($currentUser['role'] === 'admin');
 
 // Traitement des actions rapides (clôturer/réouvrir)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '')) {
@@ -17,9 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
     $sheetId = intval($_POST['sheet_id'] ?? 0);
 
     if ($sheetId > 0) {
-        // Vérifier que l'utilisateur est propriétaire de la feuille
-        $checkStmt = db()->prepare("SELECT id, status FROM sheets WHERE id = ? AND user_id = ?");
-        $checkStmt->execute([$sheetId, $userId]);
+        // Les admins peuvent gérer toutes les feuilles, les autres seulement les leurs
+        if ($isAdmin) {
+            $checkStmt = db()->prepare("SELECT id, status FROM sheets WHERE id = ?");
+            $checkStmt->execute([$sheetId]);
+        } else {
+            $checkStmt = db()->prepare("SELECT id, status FROM sheets WHERE id = ? AND user_id = ?");
+            $checkStmt->execute([$sheetId, $userId]);
+        }
         $targetSheet = $checkStmt->fetch();
 
         if ($targetSheet) {
@@ -37,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
 
-// Vérifier si c'est un super-utilisateur de la Direction générale (voit TOUT)
+// Vérifier si c'est un super-utilisateur de la Direction générale (voit TOUT) ou un admin système
 $isDGSuperAdmin = false;
 $structureCodes = array();
 if ($isStructureAdmin) {
@@ -48,8 +54,11 @@ if ($isStructureAdmin) {
     }
 }
 
+// Les admins système voient également TOUT
+$canSeeAll = $isAdmin || ($isStructureAdmin && $isDGSuperAdmin);
+
 // Récupérer les statistiques
-if ($isStructureAdmin && $isDGSuperAdmin) {
+if ($canSeeAll) {
     // Super-utilisateur Direction générale: voir TOUTES les feuilles
 
     // Stats pour ses propres feuilles
@@ -92,7 +101,7 @@ if ($isStructureAdmin && $isDGSuperAdmin) {
     $sheetsQuery->execute([$userId]);
     $sheets = $sheetsQuery->fetchAll();
 
-} elseif ($isStructureAdmin && count($structureCodes) > 0) {
+} elseif (!$isAdmin && $isStructureAdmin && count($structureCodes) > 0) {
     // Super-utilisateur de structure: voir les feuilles de sa catégorie
     $placeholders = implode(',', array_fill(0, count($structureCodes), '?'));
 
@@ -220,14 +229,14 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
-<?php if ($isStructureAdmin && $structureStats): ?>
-<!-- Statistiques de la structure (super-utilisateur) -->
-<div class="alert <?= $isDGSuperAdmin ? 'alert-danger' : 'alert-warning' ?> mb-4">
+<?php if (($canSeeAll || $isStructureAdmin) && $structureStats): ?>
+<!-- Statistiques globales (admin ou super-utilisateur) -->
+<div class="alert <?= $isAdmin ? 'alert-primary' : ($isDGSuperAdmin ? 'alert-danger' : 'alert-warning') ?> mb-4">
     <div class="d-flex align-items-center">
-        <i class="bi bi-star-fill me-2"></i>
-        <strong>Mode Super-utilisateur<?= $isDGSuperAdmin ? ' - Direction générale' : '' ?></strong>
+        <i class="bi bi-<?= $isAdmin ? 'shield-lock' : 'star-fill' ?> me-2"></i>
+        <strong><?= $isAdmin ? 'Mode Administrateur' : 'Mode Super-utilisateur' ?><?= $isDGSuperAdmin && !$isAdmin ? ' - Direction générale' : '' ?></strong>
         <span class="ms-2">
-            <?php if ($isDGSuperAdmin): ?>
+            <?php if ($isAdmin || $isDGSuperAdmin): ?>
                 - Vous voyez <strong>TOUTES</strong> les feuilles de la DGPPE
             <?php else: ?>
                 - Vous voyez toutes les feuilles de: <?= sanitize(getStructureCategory($currentUser['structure'])) ?>
@@ -235,20 +244,26 @@ require_once __DIR__ . '/../../includes/header.php';
         </span>
     </div>
 </div>
+<?php
+    $cardClass = $isAdmin ? 'border-primary' : ($isDGSuperAdmin ? 'border-danger' : 'border-warning');
+    $textClass = $isAdmin ? 'text-primary' : ($isDGSuperAdmin ? 'text-danger' : 'text-warning');
+    $allLabel = ($isAdmin || $isDGSuperAdmin) ? 'Toutes les feuilles DGPPE' : 'Feuilles de la structure';
+    $sigLabel = ($isAdmin || $isDGSuperAdmin) ? 'Toutes les signatures' : 'Signatures structure';
+?>
 <div class="row g-4 mb-4">
     <div class="col-md-6">
-        <div class="card h-100 <?= $isDGSuperAdmin ? 'border-danger' : 'border-warning' ?>">
+        <div class="card h-100 <?= $cardClass ?>">
             <div class="card-body dashboard-stat">
-                <div class="stat-number <?= $isDGSuperAdmin ? 'text-danger' : 'text-warning' ?>"><?= $structureStats['structure_sheets'] ?></div>
-                <div class="stat-label"><?= $isDGSuperAdmin ? 'Toutes les feuilles DGPPE' : 'Feuilles de la structure' ?></div>
+                <div class="stat-number <?= $textClass ?>"><?= $structureStats['structure_sheets'] ?></div>
+                <div class="stat-label"><?= $allLabel ?></div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card h-100 <?= $isDGSuperAdmin ? 'border-danger' : 'border-warning' ?>">
+        <div class="card h-100 <?= $cardClass ?>">
             <div class="card-body dashboard-stat">
-                <div class="stat-number <?= $isDGSuperAdmin ? 'text-danger' : 'text-warning' ?>"><?= $structureStats['structure_signatures'] ?></div>
-                <div class="stat-label"><?= $isDGSuperAdmin ? 'Toutes les signatures' : 'Signatures structure' ?></div>
+                <div class="stat-number <?= $textClass ?>"><?= $structureStats['structure_signatures'] ?></div>
+                <div class="stat-label"><?= $sigLabel ?></div>
             </div>
         </div>
     </div>
@@ -260,7 +275,7 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
             <i class="bi bi-list-ul me-2"></i>
-            <?php if ($isDGSuperAdmin): ?>
+            <?php if ($isAdmin || $isDGSuperAdmin): ?>
                 Toutes les feuilles DGPPE
             <?php elseif ($isStructureAdmin): ?>
                 Feuilles de la structure
@@ -327,12 +342,13 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </span>
                                 </div>
                             </div>
+                            <?php $canManage = !empty($sheet['is_owner']) || $isAdmin; ?>
                             <div class="btn-group">
                                 <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?><?= empty($sheet['is_owner']) ? '&structure=1' : '' ?>"
                                    class="btn btn-sm btn-outline-primary" title="Voir">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <?php if (!empty($sheet['is_owner'])): ?>
+                                <?php if ($canManage): ?>
                                     <?php if ($sheet['status'] === 'active'): ?>
                                         <a href="<?= SITE_URL ?>/pages/dashboard/edit.php?id=<?= $sheet['id'] ?>"
                                            class="btn btn-sm btn-outline-secondary" title="Modifier">

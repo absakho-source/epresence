@@ -7,14 +7,21 @@ require_once __DIR__ . '/../../includes/auth.php';
 requireLogin();
 
 $sheetId = intval($_GET['id'] ?? 0);
+$currentUser = getCurrentUser();
+$isGlobalAdmin = isAdmin();
 
-// Récupérer la feuille
-$stmt = db()->prepare("SELECT * FROM sheets WHERE id = ? AND user_id = ?");
-$stmt->execute([$sheetId, getCurrentUserId()]);
+// Récupérer la feuille (admins peuvent accéder à toutes les feuilles)
+if ($isGlobalAdmin) {
+    $stmt = db()->prepare("SELECT * FROM sheets WHERE id = ?");
+    $stmt->execute([$sheetId]);
+} else {
+    $stmt = db()->prepare("SELECT * FROM sheets WHERE id = ? AND user_id = ?");
+    $stmt->execute([$sheetId, getCurrentUserId()]);
+}
 $sheet = $stmt->fetch();
 
 if (!$sheet) {
-    setFlash('error', 'Feuille non trouvée.');
+    setFlash('error', 'Feuille non trouvée ou accès refusé.');
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
 

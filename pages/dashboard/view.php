@@ -69,8 +69,9 @@ $documentsStmt = db()->prepare("
 $documentsStmt->execute([$sheetId]);
 $documents = $documentsStmt->fetchAll();
 
-// Traitement des actions (uniquement pour le propriétaire)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '') && $isOwner) {
+// Traitement des actions (propriétaire ou admin)
+$canManage = $isOwner || $canViewAsGlobalAdmin;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_NAME] ?? '') && $canManage) {
     $action = $_POST['action'] ?? '';
 
     if ($action === 'close' && $sheet['status'] === 'active') {
