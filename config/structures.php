@@ -69,15 +69,15 @@ $ORGANIZATIONS = [
         'Agence nationale de la Statistique et de la Démographie - ANSD',
     ],
     'DGPPE' => [
-        'Direction Générale',
-        'Direction de l\'Administration et du Personnel',
-        'Direction de la Planification',
-        'Direction de la Prévision et des Études Économiques',
-        'Direction du Développement du Capital Humain',
-        'Centre d\'Études de Politiques pour le Développement',
-        'Cellule de Suivi de l\'Intégration',
-        'Unité de Coordination et de Suivi de la Politique Économique',
-        'Services Régionaux de la Planification',
+        'Direction Générale - DG',
+        'Direction de l\'Administration et du Personnel - DAP',
+        'Direction de la Planification - DP',
+        'Direction de la Prévision et des Études Économiques - DPEE',
+        'Direction du Développement du Capital Humain - DDCH',
+        'Centre d\'Études de Politiques pour le Développement - CEPOD',
+        'Cellule de Suivi de l\'Intégration - CSI',
+        'Unité de Coordination et de Suivi de la Politique Économique - UCSPE',
+        'Services Régionaux de la Planification - SRP',
     ],
     'Ministère des Finances et du Budget' => [
         'Ministère des Finances et du Budget - MFB',
@@ -259,19 +259,51 @@ function areStructuresInSameCategory($struct1, $struct2) {
 }
 
 /**
- * Mapping des anciens acronymes DGPPE vers les noms complets
+ * Structures DGPPE pour le formulaire d'inscription
+ */
+$DGPPE_STRUCTURES = [
+    'Direction Générale - DG',
+    'Direction de l\'Administration et du Personnel - DAP',
+    'Direction de la Planification - DP',
+    'Direction de la Prévision et des Études Économiques - DPEE',
+    'Direction du Développement du Capital Humain - DDCH',
+    'Centre d\'Études de Politiques pour le Développement - CEPOD',
+    'Cellule de Suivi de l\'Intégration - CSI',
+    'Unité de Coordination et de Suivi de la Politique Économique - UCSPE',
+    'Services Régionaux de la Planification - SRP',
+];
+
+/**
+ * Obtenir les structures DGPPE pour le formulaire d'inscription
+ */
+function getDGPPEStructures() {
+    global $DGPPE_STRUCTURES;
+    return $DGPPE_STRUCTURES;
+}
+
+/**
+ * Mapping des anciens acronymes DGPPE vers les noms complets avec acronymes
  */
 $DGPPE_ACRONYMS_MAP = [
-    'DG' => 'Direction Générale',
-    'Direction générale' => 'Direction Générale',
-    'DAP' => 'Direction de l\'Administration et du Personnel',
-    'DP' => 'Direction de la Planification',
-    'DPEE' => 'Direction de la Prévision et des Études Économiques',
-    'DDCH' => 'Direction du Développement du Capital Humain',
-    'CEPOD' => 'Centre d\'Études de Politiques pour le Développement',
-    'CSI' => 'Cellule de Suivi de l\'Intégration',
-    'UCSPE' => 'Unité de Coordination et de Suivi de la Politique Économique',
-    'SRP' => 'Services Régionaux de la Planification',
+    'DG' => 'Direction Générale - DG',
+    'Direction générale' => 'Direction Générale - DG',
+    'Direction Générale' => 'Direction Générale - DG',
+    'DAP' => 'Direction de l\'Administration et du Personnel - DAP',
+    'Direction de l\'Administration et du Personnel' => 'Direction de l\'Administration et du Personnel - DAP',
+    'DP' => 'Direction de la Planification - DP',
+    'Direction de la Planification' => 'Direction de la Planification - DP',
+    'DPEE' => 'Direction de la Prévision et des Études Économiques - DPEE',
+    'Direction de la Prévision et des Études Économiques' => 'Direction de la Prévision et des Études Économiques - DPEE',
+    'DDCH' => 'Direction du Développement du Capital Humain - DDCH',
+    'Direction du Développement du Capital Humain' => 'Direction du Développement du Capital Humain - DDCH',
+    'CEPOD' => 'Centre d\'Études de Politiques pour le Développement - CEPOD',
+    'Centre d\'Études de Politiques pour le Développement' => 'Centre d\'Études de Politiques pour le Développement - CEPOD',
+    'CSI' => 'Cellule de Suivi de l\'Intégration - CSI',
+    'Cellule de Suivi de l\'Intégration' => 'Cellule de Suivi de l\'Intégration - CSI',
+    'UCSPE' => 'Unité de Coordination et de Suivi de la Politique Économique - UCSPE',
+    'Unité de Coordination et de Suivi de la Politique Économique' => 'Unité de Coordination et de Suivi de la Politique Économique - UCSPE',
+    'SRP' => 'Services Régionaux de la Planification - SRP',
+    'Services Régionaux de la Planification' => 'Services Régionaux de la Planification - SRP',
 ];
 
 /**

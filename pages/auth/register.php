@@ -9,8 +9,8 @@ require_once __DIR__ . '/../../config/structures.php';
 // Rediriger si déjà connecté
 redirectIfLoggedIn();
 
-// Charger les structures
-$structuresGrouped = getStructuresGrouped();
+// Charger uniquement les structures DGPPE
+$dgppeStructures = getDGPPEStructures();
 
 $errors = array();
 $email = '';
@@ -112,22 +112,10 @@ require_once __DIR__ . '/../../includes/header.php';
                         <label for="structure" class="form-label">Structure / Direction <span class="text-danger">*</span></label>
                         <select class="form-select" id="structure" name="structure" required>
                             <option value="">-- Sélectionnez votre structure --</option>
-                            <?php foreach ($structuresGrouped as $category => $structures): ?>
-                                <?php $singleOption = (count($structures) === 1 && reset($structures) === $category); ?>
-                                <?php if ($singleOption): ?>
-                                    <?php $code = key($structures); ?>
-                                    <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
-                                        <?= sanitize($category) ?>
-                                    </option>
-                                <?php else: ?>
-                                    <optgroup label="<?= sanitize($category) ?>">
-                                        <?php foreach ($structures as $code => $name): ?>
-                                            <option value="<?= sanitize($code) ?>" <?= $structure === $code ? 'selected' : '' ?>>
-                                                <?= sanitize($name) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </optgroup>
-                                <?php endif; ?>
+                            <?php foreach ($dgppeStructures as $structureName): ?>
+                                <option value="<?= sanitize($structureName) ?>" <?= $structure === $structureName ? 'selected' : '' ?>>
+                                    <?= sanitize($structureName) ?>
+                                </option>
                             <?php endforeach; ?>
                         </select>
                     </div>
