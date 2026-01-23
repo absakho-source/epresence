@@ -245,11 +245,7 @@ require_once __DIR__ . '/../../includes/header.php';
             <?php if ($isAdmin || $isDGSuperAdmin): ?>
                 - Vous voyez <strong>TOUTES</strong> les feuilles de la DGPPE
             <?php else: ?>
-                <?php
-                    $structureCategory = getStructureCategory($currentUser['structure']);
-                    $displayStructure = $structureCategory ?: normalizeStructureName($currentUser['structure']);
-                ?>
-                - Vous voyez toutes les feuilles de: <strong><?= sanitize($displayStructure) ?></strong>
+                - Vous voyez toutes les feuilles de: <strong><?= sanitize(normalizeStructureName($currentUser['structure'])) ?></strong>
             <?php endif; ?>
         </span>
     </div>
