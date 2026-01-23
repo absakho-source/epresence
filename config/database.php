@@ -1,10 +1,9 @@
 <?php
 /**
- * e-Présence - Configuration et connexion à la base de données
- * Supporte MySQL (Sonatel) et PostgreSQL (Render)
+ * e-Présence - Configuration et connexion à la base de données PostgreSQL
  */
 
-// Détection du type de base de données
+// Configuration PostgreSQL via DATABASE_URL (Render)
 $databaseUrl = getenv('DATABASE_URL');
 
 if ($databaseUrl) {
@@ -17,13 +16,13 @@ if ($databaseUrl) {
     define('DB_USER', $parsedUrl['user']);
     define('DB_PASS', $parsedUrl['pass']);
 } else {
-    // MySQL sur Sonatel (valeurs par défaut)
-    define('DB_TYPE', 'mysql');
-    define('DB_HOST', getenv('DB_HOST') ?: 'sql5c50c.megasqlservers.eu');
-    define('DB_PORT', getenv('DB_PORT') ?: '3306');
-    define('DB_NAME', getenv('DB_NAME') ?: 'myapp_dgppesn461570470');
-    define('DB_USER', getenv('DB_USER') ?: 'dgppesn461570470');
-    define('DB_PASS', getenv('DB_PASS') ?: 'Dgppe@pp2026');
+    // Configuration locale par défaut (développement)
+    define('DB_TYPE', 'pgsql');
+    define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+    define('DB_PORT', getenv('DB_PORT') ?: '5432');
+    define('DB_NAME', getenv('DB_NAME') ?: 'epresence');
+    define('DB_USER', getenv('DB_USER') ?: 'postgres');
+    define('DB_PASS', getenv('DB_PASS') ?: '');
 }
 
 /**
@@ -38,23 +37,12 @@ class Database {
     public static function getInstance() {
         if (self::$instance === null) {
             try {
-                if (DB_TYPE === 'pgsql') {
-                    // PostgreSQL
-                    $dsn = sprintf(
-                        "pgsql:host=%s;port=%s;dbname=%s",
-                        DB_HOST,
-                        DB_PORT,
-                        DB_NAME
-                    );
-                } else {
-                    // MySQL
-                    $dsn = sprintf(
-                        "mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4",
-                        DB_HOST,
-                        DB_PORT,
-                        DB_NAME
-                    );
-                }
+                $dsn = sprintf(
+                    "pgsql:host=%s;port=%s;dbname=%s",
+                    DB_HOST,
+                    DB_PORT,
+                    DB_NAME
+                );
 
                 self::$instance = new PDO($dsn, DB_USER, DB_PASS, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,

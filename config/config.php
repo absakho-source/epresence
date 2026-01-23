@@ -39,12 +39,32 @@ define('MAX_DOCUMENT_SIZE', 10 * 1024 * 1024); // 10 MB max pour les documents
 
 // Chemin des uploads - utilise le disque persistant Render si disponible
 $persistentDisk = '/var/data/uploads';
-if (getenv('RENDER') && is_dir($persistentDisk)) {
-    define('UPLOADS_PATH', $persistentDisk);
-} else {
-    define('UPLOADS_PATH', BASE_PATH . '/uploads');
+$persistentDocuments = $persistentDisk . '/documents';
+$localUploads = BASE_PATH . '/uploads';
+$localDocuments = $localUploads . '/documents';
+
+// Tester si le disque persistant est réellement utilisable
+$usePersistentDisk = false;
+if (is_dir($persistentDisk) && is_writable($persistentDisk)) {
+    // Essayer de créer le dossier documents
+    if (!is_dir($persistentDocuments)) {
+        $usePersistentDisk = @mkdir($persistentDocuments, 0755, true);
+    } else {
+        $usePersistentDisk = is_writable($persistentDocuments);
+    }
 }
-define('DOCUMENTS_PATH', UPLOADS_PATH . '/documents');
+
+if ($usePersistentDisk) {
+    define('UPLOADS_PATH', $persistentDisk);
+    define('DOCUMENTS_PATH', $persistentDocuments);
+} else {
+    define('UPLOADS_PATH', $localUploads);
+    define('DOCUMENTS_PATH', $localDocuments);
+    // Créer le dossier local si nécessaire
+    if (!is_dir(DOCUMENTS_PATH)) {
+        @mkdir(DOCUMENTS_PATH, 0755, true);
+    }
+}
 
 // Configuration CSRF
 define('CSRF_TOKEN_NAME', 'csrf_token');

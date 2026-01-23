@@ -116,9 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // Traiter les nouveaux fichiers uploadés
                 if (!empty($_FILES['documents']['name'][0])) {
-                    // Créer le dossier d'upload si nécessaire
+                    // Vérifier que le dossier d'upload existe et est accessible
                     if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true);
+                        if (!@mkdir($uploadDir, 0755, true)) {
+                            $errors[] = "Impossible de créer le dossier d'upload. Contactez l'administrateur.";
+                        }
+                    }
+
+                    if (!is_writable($uploadDir)) {
+                        $errors[] = "Le dossier d'upload n'est pas accessible en écriture.";
                     }
 
                     $fileCount = count($_FILES['documents']['name']);

@@ -26,13 +26,30 @@ $doc = $stmt->fetch();
 
 if (!$doc) {
     http_response_code(404);
-    exit('Document non trouvé');
+    exit('Document non trouvé dans la base de données');
 }
 
 // Construire le chemin du fichier
 $filePath = DOCUMENTS_PATH . '/' . $doc['stored_name'];
 
 if (!file_exists($filePath)) {
+    // En mode debug, afficher plus d'informations
+    if (DEBUG_MODE) {
+        $info = [
+            'error' => 'Fichier non trouvé sur le serveur',
+            'doc_id' => $docId,
+            'stored_name' => $doc['stored_name'],
+            'expected_path' => $filePath,
+            'documents_path' => DOCUMENTS_PATH,
+            'uploads_path' => UPLOADS_PATH,
+            'persistent_disk_exists' => is_dir('/var/data/uploads'),
+            'documents_dir_exists' => is_dir(DOCUMENTS_PATH),
+        ];
+        http_response_code(404);
+        header('Content-Type: application/json');
+        exit(json_encode($info, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+
     http_response_code(404);
     exit('Fichier non trouvé sur le serveur');
 }
