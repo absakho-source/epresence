@@ -50,7 +50,7 @@ require_once __DIR__ . '/includes/header.php';
 <section class="py-2">
     <div class="container">
         <h2 class="text-center mb-2 h4">Comment ça marche ?</h2>
-        <div class="row g-3">
+        <div class="row g-2">
             <div class="col-md-4">
                 <div class="card h-100 feature-card">
                     <div class="card-body">
@@ -95,7 +95,7 @@ require_once __DIR__ . '/includes/header.php';
             </div>
         </div>
 
-        <div class="row g-3 mt-0">
+        <div class="row g-2 mt-0">
             <div class="col-md-4">
                 <div class="card h-100 feature-card">
                     <div class="card-body">
