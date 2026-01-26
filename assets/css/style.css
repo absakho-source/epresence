@@ -472,7 +472,7 @@ main {
 .hero-section {
     background: linear-gradient(135deg, var(--dgppe-green) 0%, var(--dgppe-green-dark) 100%);
     color: white;
-    padding: 30px 0;
+    padding: 20px 0;
     position: relative;
 }
 
@@ -508,7 +508,7 @@ main {
     justify-content: center;
     align-items: center;
     gap: 20px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .hero-logos img {
@@ -522,13 +522,13 @@ main {
 /* Feature cards */
 .feature-card {
     text-align: center;
-    padding: 15px;
+    padding: 10px;
 }
 
 .feature-card .feature-icon {
     font-size: 2rem;
     color: var(--dgppe-green);
-    margin-bottom: 10px;
+    margin-bottom: 6px;
 }
 
 .feature-card h4 {
