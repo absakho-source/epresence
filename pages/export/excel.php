@@ -153,6 +153,9 @@ header('Expires: 0');
             border: 1px solid #ccc;
             vertical-align: middle;
         }
+        .tel {
+            mso-number-format:'\@';
+        }
         table.data tr:nth-child(even) {
             background-color: #f9f9f9;
         }
@@ -238,8 +241,8 @@ header('Expires: 0');
                 <td><?= htmlspecialchars($sig['last_name']) ?></td>
                 <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
                 <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
-                <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?></td>
-                <td><?= !empty($sig['phone_secondary']) ? htmlspecialchars(formatPhone($sig['phone_secondary'])) : '-' ?></td>
+                <td class="tel"><?= htmlspecialchars(formatPhone($sig['phone'])) ?></td>
+                <td class="tel"><?= !empty($sig['phone_secondary']) ? htmlspecialchars(formatPhone($sig['phone_secondary'])) : '-' ?></td>
                 <td><?= htmlspecialchars($sig['email']) ?></td>
                 <td><?= date('d/m/Y', strtotime($sig['signed_at'])) ?></td>
                 <td><?= date('H:i', strtotime($sig['signed_at'])) ?></td>
