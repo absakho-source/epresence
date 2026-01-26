@@ -145,10 +145,6 @@ require_once __DIR__ . '/includes/header.php';
 <!-- Call to Action -->
 <section class="bg-light py-3">
     <div class="container text-center">
-        <h5 class="mb-2">Prêt à simplifier vos émargements ?</h5>
-        <p class="text-muted mb-3 small">
-            Dites adieu aux feuilles de présence papier et passez au numérique.
-        </p>
         <?php if (!isLoggedIn()): ?>
             <a href="<?= SITE_URL ?>/pages/auth/login.php" class="btn btn-primary">
                 <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
