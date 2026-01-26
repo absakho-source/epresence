@@ -4,17 +4,53 @@
  */
 
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
 $sheetId = intval($_GET['id'] ?? 0);
+$currentUser = getCurrentUser();
+$isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
 
-// Récupérer la feuille
-$stmt = db()->prepare("SELECT * FROM sheets WHERE id = ? AND user_id = ?");
-$stmt->execute([$sheetId, getCurrentUserId()]);
+// Récupérer la feuille avec infos du créateur
+$stmt = db()->prepare("
+    SELECT s.*, u.first_name as creator_first_name, u.last_name as creator_last_name, u.structure as creator_structure
+    FROM sheets s
+    JOIN users u ON s.user_id = u.id
+    WHERE s.id = ?
+");
+$stmt->execute([$sheetId]);
 $sheet = $stmt->fetch();
 
 if (!$sheet) {
     die('Feuille non trouvée.');
+}
+
+// Vérifier les droits d'accès
+$isOwner = ($sheet['user_id'] == getCurrentUserId());
+$canViewAsStructureAdmin = false;
+$canViewAsDGAdmin = false;
+$canViewAsGlobalAdmin = isAdmin();
+
+if (!$isOwner && $isStructureAdmin) {
+    $userCategory = getStructureCategory($currentUser['structure']);
+    $normalizedStructure = normalizeStructureName($currentUser['structure']);
+
+    // Super-utilisateur Direction générale: peut voir TOUT
+    $isDGSuperAdmin = ($userCategory === 'DGPPE' &&
+                       (strpos($normalizedStructure, 'Direction Générale') === 0 ||
+                        $normalizedStructure === 'Direction Générale - DG'));
+
+    if ($isDGSuperAdmin) {
+        $canViewAsDGAdmin = true;
+    } else {
+        // Vérifier si le créateur appartient à la même catégorie de structure
+        $structureCodes = getStructureCodesInCategory($currentUser['structure']);
+        $canViewAsStructureAdmin = in_array($sheet['creator_structure'], $structureCodes);
+    }
+}
+
+if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsDGAdmin && !$canViewAsGlobalAdmin) {
+    die('Vous n\'avez pas accès à cette feuille.');
 }
 
 // Récupérer les signatures
