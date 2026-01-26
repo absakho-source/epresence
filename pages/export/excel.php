@@ -247,9 +247,10 @@ header('Expires: 0');
             <?php endforeach; ?>
 
             <?php
-            // Lignes vides pour atteindre au moins 10 lignes
-            $minRows = max(10, count($signatures));
-            while ($num <= $minRows):
+            // Ajouter seulement 3 lignes vides supplémentaires (optimisation papier)
+            $emptyRows = min(3, 10 - count($signatures));
+            if ($emptyRows < 0) $emptyRows = 0;
+            for ($i = 0; $i < $emptyRows; $i++):
             ?>
             <tr>
                 <td class="col-num"><?= $num++ ?></td>
@@ -263,7 +264,7 @@ header('Expires: 0');
                 <td></td>
                 <td></td>
             </tr>
-            <?php endwhile; ?>
+            <?php endfor; ?>
         </tbody>
     </table>
 

@@ -86,7 +86,7 @@ if (file_exists($logoMepcPath)) {
     <style>
         @page {
             size: A4 landscape;
-            margin: 10mm;
+            margin: 8mm;
         }
         @media print {
             .no-print { display: none !important; }
@@ -104,7 +104,7 @@ if (file_exists($logoMepcPath)) {
             color: #333;
             max-width: 297mm;
             margin: 0 auto;
-            padding: 8mm;
+            padding: 5mm;
         }
         .no-print {
             position: fixed;
@@ -129,8 +129,8 @@ if (file_exists($logoMepcPath)) {
         /* Ministry Header */
         .ministry-header {
             text-align: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
+            margin-bottom: 6px;
+            padding-bottom: 5px;
             border-bottom: 1px solid #ccc;
         }
         .ministry-header .country {
@@ -162,8 +162,8 @@ if (file_exists($logoMepcPath)) {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
             border-bottom: 3px solid #00703c;
         }
         .header-logo {
@@ -192,9 +192,9 @@ if (file_exists($logoMepcPath)) {
         /* Event Info */
         .event-info {
             background-color: #f5f5f5;
-            padding: 8px 15px;
-            border-radius: 5px;
-            margin-bottom: 10px;
+            padding: 5px 15px;
+            border-radius: 3px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: center;
             gap: 40px;
@@ -206,9 +206,9 @@ if (file_exists($logoMepcPath)) {
 
         /* Description */
         .event-description {
-            padding: 8px 15px;
-            margin-bottom: 10px;
-            font-size: 11px;
+            padding: 5px 15px;
+            margin-bottom: 6px;
+            font-size: 10px;
             font-style: italic;
             color: #555;
             background-color: #fafafa;
@@ -228,13 +228,13 @@ if (file_exists($logoMepcPath)) {
         th {
             background-color: #00703c;
             color: white;
-            padding: 8px 4px;
+            padding: 5px 3px;
             text-align: left;
             font-weight: bold;
             border: 1px solid #005a30;
         }
         td {
-            padding: 5px 4px;
+            padding: 4px 3px;
             border: 1px solid #ccc;
             vertical-align: middle;
         }
@@ -243,21 +243,21 @@ if (file_exists($logoMepcPath)) {
         }
         .signature-img {
             max-width: 100px;
-            height: 35px;
+            height: 30px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
         }
         .empty-row td {
-            height: 35px;
+            height: 30px;
         }
         .col-num { width: 20px; text-align: center; }
         .col-signature { text-align: center; width: 110px; }
 
         /* Footer */
         .footer {
-            margin-top: 10px;
-            padding-top: 8px;
+            margin-top: 6px;
+            padding-top: 5px;
             border-top: 2px solid #00703c;
             font-size: 10px;
             color: #666;
@@ -361,9 +361,10 @@ if (file_exists($logoMepcPath)) {
             <?php endforeach; ?>
 
             <?php
-            // Lignes vides pour atteindre au moins 10 lignes
-            $minRows = max(10, count($signatures));
-            while ($num <= $minRows):
+            // Ajouter seulement 3 lignes vides supplémentaires (optimisation papier)
+            $emptyRows = min(3, 10 - count($signatures));
+            if ($emptyRows < 0) $emptyRows = 0;
+            for ($i = 0; $i < $emptyRows; $i++):
             ?>
             <tr class="empty-row">
                 <td class="col-num"><?= $num++ ?></td>
@@ -375,7 +376,7 @@ if (file_exists($logoMepcPath)) {
                 <td></td>
                 <td></td>
             </tr>
-            <?php endwhile; ?>
+            <?php endfor; ?>
         </tbody>
     </table>
 
