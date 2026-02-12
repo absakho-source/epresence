@@ -59,7 +59,7 @@ $formData = [
     'title' => $sheet['title'],
     'description' => $sheet['description'],
     'event_date' => $sheet['event_date'],
-    'end_date' => isset($sheet['end_date']) ? $sheet['end_date'] : $sheet['event_date'],
+    'end_date' => (isset($sheet['end_date']) && $sheet['end_date'] !== $sheet['event_date']) ? $sheet['end_date'] : '',
     'event_time' => $sheet['event_time'],
     'end_time' => isset($sheet['end_time']) ? $sheet['end_time'] : '',
     'auto_close' => isset($sheet['auto_close']) ? $sheet['auto_close'] : false,
@@ -253,7 +253,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <label for="end_date" class="form-label">Date de fin</label>
                             <input type="date" class="form-control" id="end_date" name="end_date"
                                    value="<?= sanitize($formData['end_date']) ?>">
-                            <div class="form-text">Même date que le début si événement d'un jour.</div>
+                            <div class="form-text">Laisser vide si événement d'un jour.</div>
                         </div>
                         <div class="col-md-3 mb-3 time-fields">
                             <label for="event_time" class="form-label">Heure de début <span class="text-danger time-required">*</span></label>
@@ -411,9 +411,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Synchroniser end_date avec event_date
+    // Synchroniser end_date min avec event_date (ne pas remplir si vide)
     function syncEndDate() {
-        if (!endDateInput.value || endDateInput.value < eventDateInput.value) {
+        if (endDateInput.value && endDateInput.value < eventDateInput.value) {
             endDateInput.value = eventDateInput.value;
         }
         endDateInput.min = eventDateInput.value;

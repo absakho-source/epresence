@@ -241,7 +241,7 @@ require_once __DIR__ . '/../../includes/header.php';
                             <label for="end_date" class="form-label">Date de fin</label>
                             <input type="date" class="form-control" id="end_date" name="end_date"
                                    value="<?= sanitize($formData['end_date']) ?>">
-                            <div class="form-text">Même date que le début si événement d'un jour.</div>
+                            <div class="form-text">Laisser vide si événement d'un jour.</div>
                         </div>
                         <div class="col-md-3 mb-3 time-fields">
                             <label for="event_time" class="form-label">Heure de début <span class="text-danger time-required">*</span></label>
