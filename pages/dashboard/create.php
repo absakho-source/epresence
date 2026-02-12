@@ -399,8 +399,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     eventDateInput.addEventListener('change', onEventDateChange);
     eventDateInput.addEventListener('input', onEventDateChange);
+    eventDateInput.addEventListener('keyup', onEventDateChange);
     endDateInput.addEventListener('change', onEndDateChange);
     endDateInput.addEventListener('input', onEndDateChange);
+    endDateInput.addEventListener('keyup', onEndDateChange);
 
     // Initialiser
     syncEndDate();
