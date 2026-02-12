@@ -383,27 +383,32 @@ $bodyClass = 'sign-page';
                                 </div>
 
                                 <?php if ($isMultiDay): ?>
-                                <!-- Sélection des jours (événement multi-jours) -->
+                                <!-- Sélection du jour (événement multi-jours) -->
                                 <div class="mb-3">
                                     <label class="form-label">
-                                        Jour(s) de présence <span class="text-danger">*</span>
-                                        <small class="text-muted d-block">Cochez les jours où vous êtes/serez présent(e)</small>
+                                        Jour de signature <span class="text-danger">*</span>
+                                        <small class="text-muted d-block">Sélectionnez le jour pour lequel vous signez</small>
                                     </label>
                                     <div class="days-selection">
                                         <?php
                                         $dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
                                         $monthNames = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
                                         $today = date('Y-m-d');
+                                        $hasToday = in_array($today, $eventDays);
+                                        $firstDay = true;
                                         foreach ($eventDays as $index => $day):
                                             $dateObj = new DateTime($day);
                                             $dayNum = (int)$dateObj->format('w');
                                             $dayLabel = $dayNames[$dayNum] . ' ' . $dateObj->format('j') . ' ' . $monthNames[(int)$dateObj->format('n')];
                                             $isToday = $day === $today;
+                                            // Présélectionner aujourd'hui si dans la période, sinon le premier jour
+                                            $isChecked = $hasToday ? $isToday : $firstDay;
+                                            $firstDay = false;
                                         ?>
                                         <div class="form-check day-check <?= $isToday ? 'today' : '' ?>">
-                                            <input class="form-check-input" type="checkbox" name="signed_days[]"
+                                            <input class="form-check-input" type="radio" name="signed_days[]"
                                                    value="<?= $day ?>" id="day_<?= $index ?>"
-                                                   <?= $isToday ? 'checked' : '' ?>>
+                                                   <?= $isChecked ? 'checked' : '' ?> required>
                                             <label class="form-check-label" for="day_<?= $index ?>">
                                                 <?= $dayLabel ?>
                                                 <?php if ($isToday): ?>
@@ -413,6 +418,9 @@ $bodyClass = 'sign-page';
                                         </div>
                                         <?php endforeach; ?>
                                     </div>
+                                    <small class="text-muted mt-1 d-block">
+                                        <i class="bi bi-info-circle me-1"></i>Pour signer plusieurs jours, signez une fois par jour.
+                                    </small>
                                 </div>
                                 <?php else: ?>
                                 <input type="hidden" name="signed_days[]" value="<?= $sheet['event_date'] ?>">
