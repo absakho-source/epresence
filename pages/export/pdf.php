@@ -190,21 +190,24 @@ if ($structureLogo) {
             margin-bottom: 8px;
             padding-bottom: 6px;
             border-bottom: 3px solid #00703c;
+            overflow: hidden;
         }
         .header-logo {
             flex-shrink: 0;
-            width: 120px;
+            width: 100px;
         }
         .header-logo img {
-            max-height: 110px;
+            max-height: 100px;
+            max-width: 100px;
         }
         .header-logo-right {
             flex-shrink: 0;
-            width: 120px;
-            text-align: right;
+            width: 100px;
+            text-align: center;
         }
         .header-logo-right img {
-            max-height: 90px;
+            max-height: 80px;
+            max-width: 100px;
         }
         .header-content {
             flex: 1;
