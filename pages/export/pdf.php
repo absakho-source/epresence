@@ -202,12 +202,12 @@ if ($structureLogo) {
         }
         .header-logo-right {
             flex-shrink: 0;
-            width: 100px;
+            width: 80px;
             text-align: center;
         }
         .header-logo-right img {
-            max-height: 80px;
-            max-width: 100px;
+            max-height: 60px;
+            max-width: 80px;
         }
         .header-content {
             flex: 1;
