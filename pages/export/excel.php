@@ -243,18 +243,14 @@ header('Expires: 0');
     <?php endif; ?>
 
     <!-- Tableaux des signatures par jour -->
-    <?php
-    $displayedDayIndex = 0;
-    foreach ($eventDays as $day):
+    <?php foreach ($eventDays as $dayIndex => $day):
         $daySignatures = $signaturesByDay[$day];
-        // Ignorer les jours sans signatures
-        if (empty($daySignatures)) continue;
     ?>
 
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
-        <div class="day-header<?= $displayedDayIndex > 0 ? ' new-page' : '' ?>">
-            <strong>Jour <?= $displayedDayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
+        <div class="day-header<?= $dayIndex > 0 ? ' new-page' : '' ?>">
+            <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             (<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)
         </div>
         <?php endif; ?>
@@ -314,7 +310,7 @@ header('Expires: 0');
                 <?php endfor; ?>
             </tbody>
         </table>
-    <?php $displayedDayIndex++; endforeach; ?>
+    <?php endforeach; ?>
 
     <!-- Pied de page -->
     <div class="footer-section">
@@ -329,7 +325,7 @@ header('Expires: 0');
             </tr>
         </table>
     </div>
-    <div style="text-align: center; margin-top: 10px; font-size: 9pt; color: #999;">
+    <div style="text-align: center; margin-top: 30px; font-size: 9pt; color: #999;">
         © <?= date('Y') ?> e-Présence - Plateforme d'Émargement Électronique
     </div>
 </body>

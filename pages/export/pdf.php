@@ -276,6 +276,15 @@ if (file_exists($logoMepcPath)) {
             font-size: 10px;
             color: #666;
             display: flex;
+        }
+        .copyright {
+            position: fixed;
+            bottom: 5mm;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9px;
+            color: #999;
             justify-content: space-between;
             align-items: center;
         }
@@ -328,18 +337,14 @@ if (file_exists($logoMepcPath)) {
     <?php endif; ?>
 
     <!-- Tables par jour -->
-    <?php
-    $displayedDayIndex = 0;
-    foreach ($eventDays as $day):
+    <?php foreach ($eventDays as $dayIndex => $day):
         $daySignatures = $signaturesByDay[$day];
-        // Ignorer les jours sans signatures
-        if (empty($daySignatures)) continue;
     ?>
 
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
-        <div class="day-header<?= $displayedDayIndex > 0 ? ' new-page' : '' ?>">
-            <strong>Jour <?= $displayedDayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
+        <div class="day-header<?= $dayIndex > 0 ? ' new-page' : '' ?>">
+            <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             <span class="day-count">(<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)</span>
         </div>
         <?php endif; ?>
@@ -393,7 +398,7 @@ if (file_exists($logoMepcPath)) {
                 <?php endfor; ?>
             </tbody>
         </table>
-    <?php $displayedDayIndex++; endforeach; ?>
+    <?php endforeach; ?>
 
     <!-- Footer -->
     <div class="footer">
@@ -404,8 +409,6 @@ if (file_exists($logoMepcPath)) {
         <?php endif; ?>
         <span><strong>Document généré le :</strong> <?= date('d/m/Y à H:i') ?></span>
     </div>
-    <div style="text-align: center; margin-top: 10px; font-size: 9px; color: #999;">
-        © <?= date('Y') ?> e-Présence - Plateforme d'Émargement Électronique
-    </div>
+    <div class="copyright">© <?= date('Y') ?> e-Présence - Plateforme d'Émargement Électronique</div>
 </body>
 </html>
