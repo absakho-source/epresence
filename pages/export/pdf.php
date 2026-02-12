@@ -295,9 +295,13 @@ if ($structureLogo) {
             height: 35px;
         }
         .col-num { width: 20px; text-align: center; }
-        .col-phone { width: 95px; }
-        .col-email { width: 115px; }
-        .col-signature { text-align: center; width: 130px; min-width: 130px; }
+        .col-prenom { width: 70px; }
+        .col-nom { width: 55px; }
+        .col-structure { width: 85px; }
+        .col-fonction { width: 70px; }
+        .col-phone { width: 80px; }
+        .col-email { width: 110px; }
+        .col-signature { text-align: center; width: 120px; min-width: 120px; }
 
         /* Day header for multi-day events */
         .day-header {
@@ -408,10 +412,10 @@ if ($structureLogo) {
             <thead>
                 <tr>
                     <th class="col-num">N°</th>
-                    <th>Prénom(s)</th>
-                    <th>Nom</th>
-                    <th>Structure</th>
-                    <th>Fonction</th>
+                    <th class="col-prenom">Prénom(s)</th>
+                    <th class="col-nom">Nom</th>
+                    <th class="col-structure">Structure</th>
+                    <th class="col-fonction">Fonction</th>
                     <th class="col-phone">Téléphone(s)</th>
                     <th class="col-email">Email</th>
                     <th class="col-signature">Signature</th>
@@ -424,10 +428,10 @@ if ($structureLogo) {
                 ?>
                 <tr>
                     <td class="col-num"><?= $num++ ?></td>
-                    <td><?= htmlspecialchars($sig['first_name']) ?></td>
-                    <td><?= htmlspecialchars($sig['last_name']) ?></td>
-                    <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
-                    <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
+                    <td class="col-prenom"><?= htmlspecialchars($sig['first_name']) ?></td>
+                    <td class="col-nom"><?= htmlspecialchars($sig['last_name']) ?></td>
+                    <td class="col-structure"><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
+                    <td class="col-fonction"><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
                     <td class="col-phone"><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
                     <td class="col-email"><?= htmlspecialchars($sig['email']) ?></td>
                     <td class="col-signature"><img src="<?= $sig['signature_data'] ?>" class="signature-img" /></td>
@@ -442,13 +446,13 @@ if ($structureLogo) {
                 ?>
                 <tr class="empty-row">
                     <td class="col-num"><?= $num++ ?></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
+                    <td class="col-prenom"></td>
+                    <td class="col-nom"></td>
+                    <td class="col-structure"></td>
+                    <td class="col-fonction"></td>
+                    <td class="col-phone"></td>
+                    <td class="col-email"></td>
+                    <td class="col-signature"></td>
                 </tr>
                 <?php endfor; ?>
             </tbody>
