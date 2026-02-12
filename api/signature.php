@@ -27,6 +27,7 @@ $phoneSecondary = trim($_POST['phone_secondary'] ?? '');
 $functionTitle = trim($_POST['function_title'] ?? '');
 $structure = trim($_POST['structure'] ?? '');
 $signatureData = $_POST['signature_data'] ?? '';
+$signedDays = $_POST['signed_days'] ?? []; // Jours sélectionnés pour événement multi-jours
 
 // Validation
 $errors = [];
@@ -69,7 +70,7 @@ if (!empty($errors)) {
 }
 
 // Vérifier la feuille
-$stmt = db()->prepare("SELECT id, status FROM sheets WHERE unique_code = ?");
+$stmt = db()->prepare("SELECT id, status, event_date, end_date FROM sheets WHERE unique_code = ?");
 $stmt->execute([$sheetCode]);
 $sheet = $stmt->fetch();
 
@@ -81,39 +82,95 @@ if ($sheet['status'] !== 'active') {
     jsonResponse(['error' => 'Cette feuille est clôturée et n\'accepte plus de signatures.'], 403);
 }
 
-// Vérifier si l'email a déjà signé cette feuille
-$checkStmt = db()->prepare("SELECT id FROM signatures WHERE sheet_id = ? AND email = ?");
-$checkStmt->execute([$sheet['id'], strtolower($email)]);
-if ($checkStmt->fetch()) {
-    jsonResponse(['error' => 'Cette adresse email a déjà signé cette feuille.'], 409);
+// Déterminer si c'est un événement multi-jours
+$isMultiDay = !empty($sheet['end_date']) && $sheet['end_date'] !== $sheet['event_date'];
+
+// Valider les jours sélectionnés
+if (empty($signedDays) || !is_array($signedDays)) {
+    jsonResponse(['error' => 'Veuillez sélectionner au moins un jour de présence.'], 400);
 }
 
-// Enregistrer la signature
+// Valider que les jours sélectionnés sont dans la plage de l'événement
+$validDays = [];
+$startDate = new DateTime($sheet['event_date']);
+$endDate = new DateTime($sheet['end_date'] ?? $sheet['event_date']);
+
+foreach ($signedDays as $day) {
+    $dayDate = new DateTime($day);
+    // Le jour doit être dans la plage de l'événement
+    if ($dayDate >= $startDate && $dayDate <= $endDate) {
+        $validDays[] = $day;
+    }
+}
+
+if (empty($validDays)) {
+    jsonResponse(['error' => 'Les jours sélectionnés ne sont pas valides pour cet événement.'], 400);
+}
+
+// Vérifier si l'email a déjà signé pour ces jours spécifiques
+$placeholders = implode(',', array_fill(0, count($validDays), '?'));
+$checkStmt = db()->prepare("
+    SELECT signed_for_date FROM signatures
+    WHERE sheet_id = ? AND email = ? AND signed_for_date IN ($placeholders)
+");
+$checkParams = array_merge([$sheet['id'], strtolower($email)], $validDays);
+$checkStmt->execute($checkParams);
+$alreadySigned = $checkStmt->fetchAll(PDO::FETCH_COLUMN);
+
+// Filtrer les jours déjà signés
+$daysToSign = array_diff($validDays, $alreadySigned);
+
+if (empty($daysToSign)) {
+    if ($isMultiDay) {
+        jsonResponse(['error' => 'Vous avez déjà signé pour tous les jours sélectionnés.'], 409);
+    } else {
+        jsonResponse(['error' => 'Cette adresse email a déjà signé cette feuille.'], 409);
+    }
+}
+
+// Enregistrer la signature (une entrée par jour)
 try {
     $stmt = db()->prepare("
         INSERT INTO signatures (
             sheet_id, first_name, last_name, email, phone, phone_secondary,
-            function_title, structure, signature_data, ip_address, user_agent
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            function_title, structure, signature_data, ip_address, user_agent, signed_for_date
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ");
 
-    $stmt->execute([
-        $sheet['id'],
-        $firstName,
-        strtoupper($lastName), // Nom en majuscules
-        strtolower($email),
-        $phone,
-        $phoneSecondary ?: null,
-        $functionTitle ?: null,
-        $structure ?: null,
-        $signatureData,
-        getClientIP(),
-        getUserAgent()
-    ]);
+    $signaturesAdded = 0;
+    foreach ($daysToSign as $day) {
+        $stmt->execute([
+            $sheet['id'],
+            $firstName,
+            strtoupper($lastName), // Nom en majuscules
+            strtolower($email),
+            $phone,
+            $phoneSecondary ?: null,
+            $functionTitle ?: null,
+            $structure ?: null,
+            $signatureData,
+            getClientIP(),
+            getUserAgent(),
+            $day
+        ]);
+        $signaturesAdded++;
+    }
+
+    // Message de succès adapté
+    if ($isMultiDay) {
+        $dayWord = $signaturesAdded > 1 ? 'jours' : 'jour';
+        $message = "Signature enregistrée pour $signaturesAdded $dayWord.";
+        if (!empty($alreadySigned)) {
+            $message .= " (Vous aviez déjà signé pour " . count($alreadySigned) . " autre(s) jour(s).)";
+        }
+    } else {
+        $message = 'Signature enregistrée avec succès.';
+    }
 
     jsonResponse([
         'success' => true,
-        'message' => 'Signature enregistrée avec succès.'
+        'message' => $message,
+        'days_signed' => $signaturesAdded
     ]);
 
 } catch (PDOException $e) {

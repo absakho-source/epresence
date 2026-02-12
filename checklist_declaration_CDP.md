@@ -8,9 +8,9 @@
 ### 1. Documents obligatoires
 
 - [ ] **Courrier officiel de déclaration** (`courrier_declaration_CDP.md`)
-  - À imprimer sur papier à en-tête DGPPE
-  - À signer par le Directeur Général
-  - Référence à compléter selon le système de numérotation DGPPE
+  - À imprimer sur papier à en-tête du Ministère
+  - À signer par le Secrétaire Général
+  - Référence à compléter selon le système de numérotation du Ministère
   - Date à indiquer
 
 - [ ] **Formulaire de déclaration CDP**
@@ -23,7 +23,7 @@
   - Document annexe décrivant l'architecture technique
   - À imprimer et joindre au dossier
   - Signature du responsable technique requise
-  - Validation par le DG requise
+  - Validation par le SG requise
 
 - [ ] **Politique de confidentialité** (`politique_confidentialite.md`)
   - Document à joindre au dossier
@@ -72,7 +72,7 @@
    - [ ] Ou remplir en ligne si disponible
 
 3. **Remplir le formulaire CDP**
-   - [ ] Identité du responsable de traitement (DGPPE)
+   - [ ] Identité du responsable de traitement (Ministère)
    - [ ] Description du traitement (e-Présence)
    - [ ] Catégories de données collectées
    - [ ] Destinataires des données
@@ -83,7 +83,7 @@
 
 4. **Rassembler les pièces justificatives**
    - [ ] Copie de la décision de création du système (si existe)
-   - [ ] Organigramme de la DGPPE
+   - [ ] Organigramme du Ministère
    - [ ] Coordonnées du délégué à la protection des données (si désigné)
 
 ### Phase 2 : Validation interne (Semaine 2)
@@ -91,8 +91,8 @@
 5. **Circuit de validation**
    - [ ] Validation technique par le responsable informatique
    - [ ] Validation juridique par le service des affaires juridiques
-   - [ ] Validation administrative par le Secrétaire Général
-   - [ ] Signature finale du Directeur Général
+   - [ ] Validation administrative par le Cabinet
+   - [ ] Signature finale du Secrétaire Général
 
 6. **Vérification finale**
    - [ ] Cohérence entre tous les documents
@@ -128,7 +128,7 @@
 9. **Confirmation du dépôt**
    - [ ] Noter la date de dépôt
    - [ ] Noter le numéro de dossier attribué (si applicable)
-   - [ ] Enregistrer le récépissé dans les archives DGPPE
+   - [ ] Enregistrer le récépissé dans les archives du Ministère
 
 ### Phase 4 : Suivi (Semaines 4-8)
 
@@ -176,7 +176,7 @@
 - **Téléphone :** +221 33 869 90 60
 - **Horaires :** Lundi à Vendredi, 8h00 - 17h00
 
-### Contact DGPPE (Responsable du dossier)
+### Contact MEPC (Responsable du dossier)
 - **Nom :** _________________________________
 - **Fonction :** ______________________________
 - **Email :** _________________________________
@@ -273,7 +273,7 @@
 
 **Avant dépôt, vérifier que TOUT est OK :**
 
-- [ ] Courrier signé par le DG avec cachet DGPPE
+- [ ] Courrier signé par le SG avec cachet du Ministère
 - [ ] Formulaire CDP complet et signé
 - [ ] Note technique complète
 - [ ] Politique de confidentialité jointe
@@ -291,5 +291,5 @@ Date : ________________________
 
 ---
 
-**Direction Générale de la Planification et des Politiques Économiques (DGPPE)**
+**Ministère de l'Économie, du Plan et de la Coopération (MEPC)**
 *Document interne – Janvier 2026*

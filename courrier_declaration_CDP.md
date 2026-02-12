@@ -7,13 +7,11 @@ Un Peuple – Un But – Une Foi
 
 ---
 
-**MINISTÈRE DE L'ÉCONOMIE, DU PLAN ET DE LA COOPÉRATION**
-
-**DIRECTION GÉNÉRALE DE LA PLANIFICATION ET DES POLITIQUES ÉCONOMIQUES (DGPPE)**
+**MINISTÈRE DE L'ÉCONOMIE, DU PLAN ET DE LA COOPÉRATION (MEPC)**
 
 ---
 
-**Réf. :** N°________/DGPPE/DG
+**Réf. :** N°________/MEPC/SG
 **Objet :** Déclaration de traitement de données personnelles – Système e-Présence
 
 **Dakar, le __________ 2026**
@@ -31,20 +29,19 @@ Un Peuple – Un But – Une Foi
 
 **Monsieur le Président,**
 
-Conformément aux dispositions de la loi n° 2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, et notamment son article 18 qui impose la déclaration préalable de tout traitement de données personnelles, j'ai l'honneur de porter à votre connaissance la mise en place, au sein de la Direction Générale de la Planification et des Politiques Économiques (DGPPE), d'un système informatique dénommé **« e-Présence »**.
+Conformément aux dispositions de la loi n° 2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel, et notamment son article 18 qui impose la déclaration préalable de tout traitement de données personnelles, j'ai l'honneur de porter à votre connaissance la mise en place, au sein du Ministère de l'Économie, du Plan et de la Coopération (MEPC), d'un système informatique dénommé **« e-Présence »**.
 
 ## I. IDENTIFICATION DU RESPONSABLE DE TRAITEMENT
 
-**Organisme :** Direction Générale de la Planification et des Politiques Économiques (DGPPE)
-**Ministère de tutelle :** Ministère de l'Économie, du Plan et de la Coopération
-**Adresse :** Building administratif, 3ème étage, avenue Roume, Dakar
+**Organisme :** Ministère de l'Économie, du Plan et de la Coopération (MEPC)
+**Adresse :** Building administratif, avenue Roume, Dakar
 **Téléphone :** +221 33 ___________
-**Email :** contact@dgppe.gouv.sn
-**Représentant légal :** Directeur Général de la DGPPE
+**Email :** contact@economie.gouv.sn
+**Représentant légal :** Secrétaire Général du MEPC
 
 ## II. FINALITÉ DU TRAITEMENT
 
-Le système « e-Présence » est une plateforme numérique d'émargement électronique destinée à remplacer les feuilles de présence papier lors des réunions, ateliers, formations et événements organisés par la DGPPE et ses structures rattachées.
+Le système « e-Présence » est une plateforme numérique d'émargement électronique destinée à remplacer les feuilles de présence papier lors des réunions, ateliers, formations et événements organisés par le Ministère de l'Économie, du Plan et de la Coopération (MEPC) et ses structures rattachées (Directions Générales, Cabinet, etc.).
 
 **Objectifs principaux :**
 - Moderniser et sécuriser le processus d'émargement
@@ -68,7 +65,7 @@ Dans le cadre de ce traitement, les données suivantes sont collectées :
 - Date et heure de signature
 - Données techniques (adresse IP, navigateur utilisé)
 
-### C. Données des organisateurs (agents DGPPE)
+### C. Données des organisateurs (agents MEPC)
 - Nom, prénom et email professionnel
 - Structure d'appartenance
 - Identifiant de connexion (email)
@@ -76,9 +73,8 @@ Dans le cadre de ce traitement, les données suivantes sont collectées :
 
 ## IV. CATÉGORIES DE PERSONNES CONCERNÉES
 
-- Agents et cadres de la DGPPE et de ses structures
-- Agents des autres structures du Ministère de l'Économie, du Plan et de la Coopération
-- Fonctionnaires et agents de l'État participant aux activités de la DGPPE
+- Agents et cadres du MEPC et de ses structures (Cabinet, Directions Générales, Directions techniques)
+- Fonctionnaires et agents de l'État participant aux activités du MEPC
 - Partenaires techniques et financiers
 - Experts et consultants externes
 - Membres de la société civile et du secteur privé
@@ -87,9 +83,8 @@ Dans le cadre de ce traitement, les données suivantes sont collectées :
 
 Les données collectées sont accessibles exclusivement à :
 - L'organisateur de la réunion ou de l'événement
-- Le Directeur Général de la DGPPE
-- Les administrateurs système (pour la maintenance technique)
-- Les super-utilisateurs de chaque direction (dans la limite de leur structure)
+- Les Responsables de structure (dans la limite de leur Direction/Structure)
+- Les administrateurs globaux du système (pour la maintenance technique et la supervision)
 
 Aucune transmission de données à des tiers n'est effectuée sans le consentement explicite des personnes concernées, sauf obligation légale.
 
@@ -105,7 +100,7 @@ Au-delà de ces délais, les données font l'objet d'une suppression sécurisée
 
 ## VII. MESURES DE SÉCURITÉ
 
-La DGPPE s'engage à mettre en œuvre toutes les mesures techniques et organisationnelles appropriées pour assurer la sécurité et la confidentialité des données :
+Le MEPC s'engage à mettre en œuvre toutes les mesures techniques et organisationnelles appropriées pour assurer la sécurité et la confidentialité des données :
 
 ### Mesures techniques :
 - Chiffrement des mots de passe (algorithme bcrypt, coût 12)
@@ -131,15 +126,15 @@ Conformément à la loi n° 2008-12, les personnes dont les données sont collec
 - Droit à l'information sur le traitement de leurs données
 
 Ces droits peuvent être exercés en adressant une demande écrite à :
-**Direction Générale de la Planification et des Politiques Économiques**
-Email : contact@dgppe.gouv.sn
+**Ministère de l'Économie, du Plan et de la Coopération**
+Email : contact@economie.gouv.sn
 Téléphone : +221 33 ___________
 
 ## IX. BASE JURIDIQUE DU TRAITEMENT
 
 Le présent traitement repose sur les fondements juridiques suivants :
 - Loi n° 2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel
-- Mission d'intérêt public dévolue à la DGPPE dans le cadre de ses attributions
+- Mission d'intérêt public dévolue au MEPC dans le cadre de ses attributions
 - Nécessité du traitement pour l'exécution des missions de service public
 
 ## X. TRANSFERT DE DONNÉES HORS DU SÉNÉGAL
@@ -152,13 +147,13 @@ En vous priant de bien vouloir enregistrer cette déclaration et de nous délivr
 
 ---
 
-**Le Directeur Général de la DGPPE**
+**Le Secrétaire Général du MEPC**
 
 
 *[Signature]*
 
 **Nom : __________________________**
-**Titre : Directeur Général**
+**Titre : Secrétaire Général**
 
 ---
 
@@ -169,8 +164,7 @@ En vous priant de bien vouloir enregistrer cette déclaration et de nous délivr
 
 **Copies pour information :**
 - Monsieur le Ministre de l'Économie, du Plan et de la Coopération
-- Secrétaire Général du Ministère
-- Directions techniques de la DGPPE
+- Directeurs Généraux du MEPC
 
 ---
 

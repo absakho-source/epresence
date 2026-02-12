@@ -6,7 +6,7 @@
 **RÉPUBLIQUE DU SÉNÉGAL**
 Un Peuple – Un But – Une Foi
 
-**DIRECTION GÉNÉRALE DE LA PLANIFICATION ET DES POLITIQUES ÉCONOMIQUES (DGPPE)**
+**MINISTÈRE DE L'ÉCONOMIE, DU PLAN ET DE LA COOPÉRATION (MEPC)**
 
 ---
 
@@ -14,7 +14,7 @@ Un Peuple – Un But – Une Foi
 
 ### 1.1 Description fonctionnelle
 
-Le système **e-Présence** est une application web responsive permettant la gestion dématérialisée des feuilles d'émargement pour les réunions, ateliers, formations et événements organisés par la DGPPE.
+Le système **e-Présence** est une application web responsive permettant la gestion dématérialisée des feuilles d'émargement pour les réunions, ateliers, formations et événements organisés par le MEPC et ses structures (Cabinet, Directions Générales, Directions techniques).
 
 **Architecture :** Application web client-serveur
 **Mode de déploiement :** Hébergement cloud sécurisé
@@ -22,7 +22,7 @@ Le système **e-Présence** est une application web responsive permettant la ges
 
 ### 1.2 Fonctionnalités principales
 
-#### Pour les organisateurs (agents DGPPE) :
+#### Pour les organisateurs (agents MEPC) :
 - Création de compte (sous validation administrative)
 - Création de feuilles d'émargement
 - Génération automatique de QR code unique par feuille
@@ -132,14 +132,14 @@ Le système **e-Présence** est une application web responsive permettant la ges
    - Voir toutes les feuilles de sa structure
    - Pas de modification des feuilles des autres
 
-3. **Super-utilisateur Direction Générale :**
-   - Voir toutes les feuilles de la DGPPE
-   - Vue consolidée par structure
+3. **Responsable de structure :**
+   - Voir toutes les feuilles de sa Direction/Structure
+   - Vue consolidée de sa structure
 
-4. **Administrateur système :**
+4. **Administrateur global :**
    - Gestion des comptes utilisateurs
    - Validation des inscriptions
-   - Accès à toutes les fonctionnalités
+   - Statistiques globales du système
    - Promotion/rétrogradation des utilisateurs
 
 ### 3.3 Traçabilité
@@ -220,15 +220,19 @@ Création → Active → Clôturée → Archivée → Suppression
 3. Notification par email
 4. Activation du compte
 
+#### Départ d'un agent
+- Suspension du compte de l'utilisateur
+- **Les feuilles créées restent accessibles** : liées à la structure, pas à l'utilisateur
+- Conservation des informations du créateur (nom, structure d'origine)
+
 #### Désactivation de compte
-- Départ de l'agent : Suspension du compte
 - Conservation des données historiques : 1 an
 - Anonymisation après délai légal
 
 ### 5.3 Procédure de suppression
 
 #### Suppression de données personnelles (sur demande)
-1. Demande écrite à contact@dgppe.gouv.sn
+1. Demande écrite à contact@economie.gouv.sn
 2. Vérification d'identité
 3. Suppression sous 30 jours (sauf obligation légale)
 4. Confirmation par email
@@ -255,7 +259,7 @@ Création → Active → Clôturée → Archivée → Suppression
 
 ### 6.2 Accès aux données
 
-- **Équipe technique DGPPE :** Accès administrateur
+- **Équipe technique MEPC :** Accès administrateur
 - **Hébergeur :** Accès infrastructure uniquement (pas aux données)
 - **Sous-traitants éventuels :** Accord de confidentialité obligatoire
 
@@ -313,7 +317,7 @@ Signature : ____________________
 
 **Pour validation :**
 
-**Le Directeur Général de la DGPPE**
+**Le Secrétaire Général du MEPC**
 
 Nom : _________________________
 Signature : ____________________

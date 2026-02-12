@@ -9,15 +9,15 @@
 
 ## 1. INTRODUCTION
 
-La Direction Générale de la Planification et des Politiques Économiques (DGPPE) s'engage à protéger la vie privée et les données personnelles de tous les utilisateurs du système **e-Présence**.
+Le Ministère de l'Économie, du Plan et de la Coopération (MEPC) s'engage à protéger la vie privée et les données personnelles de tous les utilisateurs du système **e-Présence**.
 
 Cette politique de confidentialité vous informe sur la manière dont nous collectons, utilisons, protégeons et conservons vos données personnelles conformément à la loi n° 2008-12 du 25 janvier 2008 portant sur la protection des données à caractère personnel au Sénégal.
 
 ## 2. RESPONSABLE DU TRAITEMENT
 
-**Organisme :** Direction Générale de la Planification et des Politiques Économiques (DGPPE)
-**Adresse :** Building administratif, 3ème étage, avenue Roume, Dakar, Sénégal
-**Email :** contact@dgppe.gouv.sn
+**Organisme :** Ministère de l'Économie, du Plan et de la Coopération (MEPC)
+**Adresse :** Building administratif, avenue Roume, Dakar, Sénégal
+**Email :** contact@economie.gouv.sn
 **Téléphone :** +221 33 ___________
 
 Le traitement des données personnelles dans le cadre du système e-Présence a été déclaré à la Commission de Protection des Données Personnelles (CDP) du Sénégal.
@@ -42,14 +42,14 @@ Lorsque vous signez une feuille d'émargement électronique, nous collectons :
 
 **Caractère obligatoire :** Ces données sont nécessaires pour permettre votre émargement. Sans ces informations, nous ne pouvons pas enregistrer votre présence.
 
-### 3.2 Pour les organisateurs (agents DGPPE)
+### 3.2 Pour les organisateurs (agents MEPC)
 
 Si vous créez un compte organisateur, nous collectons également :
 
 - Email professionnel (identifiant de connexion)
 - Mot de passe chiffré (sécurité du compte)
-- Structure d'appartenance DGPPE
-- Fonction au sein de la DGPPE
+- Structure d'appartenance au sein du MEPC
+- Fonction
 - Historique de connexions (logs de sécurité)
 
 ## 4. DESTINATAIRES DES DONNÉES
@@ -58,9 +58,8 @@ Vos données personnelles sont accessibles uniquement à :
 
 ### 4.1 En interne
 - **L'organisateur de la réunion** : Pour gérer la feuille d'émargement et générer les exports
-- **Le Directeur Général de la DGPPE** : Supervision administrative
-- **Les super-utilisateurs de structure** : Pour consultation des feuilles de leur direction
-- **Les administrateurs système** : Pour la maintenance technique et la sécurité
+- **Les Responsables de structure** : Pour consultation et supervision des feuilles de leur Direction/Structure
+- **Les administrateurs globaux** : Pour la maintenance technique, gestion des utilisateurs et validation des inscriptions
 
 ### 4.2 Transmission externe
 **Aucune transmission de vos données à des tiers commerciaux ou non autorisés.**
@@ -85,7 +84,7 @@ Vos données peuvent être communiquées uniquement dans les cas suivants :
 
 ## 6. SÉCURITÉ DES DONNÉES
 
-La DGPPE met en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données :
+Le MEPC met en œuvre des mesures de sécurité techniques et organisationnelles pour protéger vos données :
 
 ### 6.1 Mesures techniques
 - ✅ Chiffrement des mots de passe (algorithme bcrypt, irréversible)
@@ -126,13 +125,13 @@ Dans certains cas, vous pouvez demander une limitation temporaire du traitement.
 ### 7.6 Comment exercer vos droits ?
 
 **Par email :**
-📧 contact@dgppe.gouv.sn
+📧 contact@economie.gouv.sn
 Objet : « Exercice de mes droits – e-Présence »
 
 **Par courrier :**
-Direction Générale de la Planification et des Politiques Économiques (DGPPE)
+Ministère de l'Économie, du Plan et de la Coopération (MEPC)
 À l'attention du Responsable de traitement
-Building administratif, 3ème étage, avenue Roume
+Building administratif, avenue Roume
 Dakar, Sénégal
 
 **Pièces à fournir :**
@@ -195,10 +194,10 @@ Nous vous encourageons à consulter régulièrement cette politique.
 
 Pour toute question concernant cette politique de confidentialité ou le traitement de vos données personnelles :
 
-**Direction Générale de la Planification et des Politiques Économiques (DGPPE)**
-📧 Email : contact@dgppe.gouv.sn
+**Ministère de l'Économie, du Plan et de la Coopération (MEPC)**
+📧 Email : contact@economie.gouv.sn
 ☎️ Téléphone : +221 33 ___________
-📍 Adresse : Building administratif, 3ème étage, avenue Roume, Dakar
+📍 Adresse : Building administratif, avenue Roume, Dakar
 
 **Responsable du système e-Présence :**
 📧 Email : _______________________
@@ -221,7 +220,7 @@ En signant électroniquement une feuille d'émargement, vous reconnaissez :
 En créant un compte organisateur, vous acceptez :
 - ✅ Cette politique de confidentialité
 - ✅ Les conditions générales d'utilisation du système
-- ✅ La charte de sécurité et de confidentialité de la DGPPE
+- ✅ La charte de sécurité et de confidentialité du MEPC
 - ✅ Les obligations de protection des données des participants
 
 ---
@@ -235,8 +234,7 @@ Le traitement des données personnelles dans le cadre du système e-Présence a 
 
 ---
 
-**Direction Générale de la Planification et des Politiques Économiques (DGPPE)**
-**Ministère de l'Économie, du Plan et de la Coopération**
+**Ministère de l'Économie, du Plan et de la Coopération (MEPC)**
 **République du Sénégal**
 
 ---

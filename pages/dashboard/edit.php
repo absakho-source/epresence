@@ -59,6 +59,7 @@ $formData = [
     'title' => $sheet['title'],
     'description' => $sheet['description'],
     'event_date' => $sheet['event_date'],
+    'end_date' => isset($sheet['end_date']) ? $sheet['end_date'] : $sheet['event_date'],
     'event_time' => $sheet['event_time'],
     'end_time' => isset($sheet['end_time']) ? $sheet['end_time'] : '',
     'auto_close' => isset($sheet['auto_close']) ? $sheet['auto_close'] : false,
@@ -74,11 +75,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'title' => trim($_POST['title'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
             'event_date' => $_POST['event_date'] ?? '',
+            'end_date' => $_POST['end_date'] ?? '',
             'event_time' => $_POST['event_time'] ?? '',
             'end_time' => $_POST['end_time'] ?? '',
             'auto_close' => isset($_POST['auto_close']),
             'location' => trim($_POST['location'] ?? '')
         ];
+
+        // Si end_date n'est pas spécifié, utiliser event_date
+        if (empty($formData['end_date'])) {
+            $formData['end_date'] = $formData['event_date'];
+        }
 
         if (empty($formData['title'])) {
             $errors[] = "Le titre est obligatoire.";
@@ -86,6 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($formData['event_date'])) {
             $errors[] = "La date est obligatoire.";
+        }
+
+        // Valider que end_date >= event_date
+        if ($formData['end_date'] < $formData['event_date']) {
+            $errors[] = "La date de fin ne peut pas être antérieure à la date de début.";
         }
 
         if (empty($formData['event_time'])) {
@@ -103,6 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         title = ?,
                         description = ?,
                         event_date = ?,
+                        end_date = ?,
                         event_time = ?,
                         end_time = ?,
                         auto_close = ?,
@@ -114,6 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $formData['title'],
                     $formData['description'] ?: null,
                     $formData['event_date'],
+                    $formData['end_date'],
                     $formData['event_time'],
                     $formData['end_time'] ?: null,
                     $autoCloseValue,
@@ -228,17 +242,23 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
 
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="event_date" class="form-label">Date <span class="text-danger">*</span></label>
+                        <div class="col-md-3 mb-3">
+                            <label for="event_date" class="form-label">Date de début <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="event_date" name="event_date"
                                    value="<?= sanitize($formData['event_date']) ?>" required>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
+                            <label for="end_date" class="form-label">Date de fin</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date"
+                                   value="<?= sanitize($formData['end_date']) ?>">
+                            <div class="form-text">Laisser vide si événement d'un jour.</div>
+                        </div>
+                        <div class="col-md-3 mb-3">
                             <label for="event_time" class="form-label">Heure de début <span class="text-danger">*</span></label>
                             <input type="time" class="form-control" id="event_time" name="event_time"
                                    value="<?= sanitize($formData['event_time']) ?>" required>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="end_time" class="form-label">Heure de fin</label>
                             <input type="time" class="form-control" id="end_time" name="end_time"
                                    value="<?= sanitize($formData['end_time']) ?>">
@@ -372,6 +392,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const autoCloseCheckbox = document.getElementById('auto_close');
     const autoCloseLabel = document.querySelector('label[for="auto_close"]');
     const autoCloseHint = document.getElementById('auto_close_hint');
+    const eventDateInput = document.getElementById('event_date');
+    const endDateInput = document.getElementById('end_date');
 
     function updateAutoCloseState() {
         const hasEndTime = endTimeInput.value !== '';
@@ -385,6 +407,24 @@ document.addEventListener('DOMContentLoaded', function() {
             autoCloseHint.textContent = "Si coché, les signatures ne seront plus acceptées après l'heure de fin.";
         }
     }
+
+    // Synchroniser end_date avec event_date
+    function syncEndDate() {
+        if (!endDateInput.value || endDateInput.value < eventDateInput.value) {
+            endDateInput.value = eventDateInput.value;
+        }
+        endDateInput.min = eventDateInput.value;
+    }
+
+    eventDateInput.addEventListener('change', syncEndDate);
+    endDateInput.addEventListener('change', function() {
+        if (endDateInput.value < eventDateInput.value) {
+            endDateInput.value = eventDateInput.value;
+        }
+    });
+
+    // Initialiser
+    syncEndDate();
 
     endTimeInput.addEventListener('change', updateAutoCloseState);
     endTimeInput.addEventListener('input', updateAutoCloseState);

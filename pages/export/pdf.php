@@ -56,10 +56,39 @@ if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsDGAdmin && !$canViewAsG
 $signaturesStmt = db()->prepare("
     SELECT * FROM signatures
     WHERE sheet_id = ?
-    ORDER BY signed_at ASC
+    ORDER BY signed_for_date ASC, signed_at ASC
 ");
 $signaturesStmt->execute([$sheetId]);
 $signatures = $signaturesStmt->fetchAll();
+
+// Détecter si c'est un événement multi-jours
+$isMultiDay = !empty($sheet['end_date']) && $sheet['end_date'] !== $sheet['event_date'];
+
+// Générer la liste des jours et grouper les signatures par jour
+$eventDays = [];
+$signaturesByDay = [];
+
+if ($isMultiDay) {
+    $startDate = new DateTime($sheet['event_date']);
+    $endDate = new DateTime($sheet['end_date']);
+    $endDate->modify('+1 day');
+    $period = new DatePeriod($startDate, new DateInterval('P1D'), $endDate);
+    foreach ($period as $date) {
+        $day = $date->format('Y-m-d');
+        $eventDays[] = $day;
+        $signaturesByDay[$day] = [];
+    }
+    // Grouper les signatures par jour
+    foreach ($signatures as $sig) {
+        $day = $sig['signed_for_date'] ?? $sheet['event_date'];
+        if (isset($signaturesByDay[$day])) {
+            $signaturesByDay[$day][] = $sig;
+        }
+    }
+} else {
+    $eventDays[] = $sheet['event_date'];
+    $signaturesByDay[$sheet['event_date']] = $signatures;
+}
 
 // Chemin du logo MEPC (base64 pour inclusion dans HTML)
 $logoMepcPath = __DIR__ . '/../../assets/img/' . LOGO_MEPC;
@@ -220,6 +249,21 @@ if (file_exists($logoMepcPath)) {
         .col-num { width: 20px; text-align: center; }
         .col-signature { text-align: center; width: 110px; }
 
+        /* Day header for multi-day events */
+        .day-header {
+            background-color: #e8f5e9;
+            padding: 6px 12px;
+            margin: 10px 0 6px 0;
+            border-left: 4px solid #00703c;
+            font-size: 12px;
+            color: #00703c;
+        }
+        .day-header .day-count {
+            font-weight: normal;
+            color: #666;
+            margin-left: 10px;
+        }
+
         /* Footer */
         .footer {
             margin-top: 6px;
@@ -259,7 +303,11 @@ if (file_exists($logoMepcPath)) {
 
     <!-- Event Info -->
     <div class="event-info">
-        <span><strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?></span>
+        <?php if ($isMultiDay): ?>
+            <span><strong>Période :</strong> Du <?= formatDateFr($sheet['event_date']) ?> au <?= formatDateFr($sheet['end_date']) ?></span>
+        <?php else: ?>
+            <span><strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?></span>
+        <?php endif; ?>
         <?php if ($sheet['event_time']): ?>
             <span><strong>Heure :</strong> <?= formatTime($sheet['event_time']) ?></span>
         <?php endif; ?>
@@ -275,60 +323,76 @@ if (file_exists($logoMepcPath)) {
     </div>
     <?php endif; ?>
 
-    <!-- Table -->
-    <table>
-        <thead>
-            <tr>
-                <th class="col-num">N°</th>
-                <th>Prénom</th>
-                <th>Nom</th>
-                <th>Structure</th>
-                <th>Fonction</th>
-                <th>Téléphone</th>
-                <th>Email</th>
-                <th class="col-signature">Signature</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php
-            $num = 1;
-            foreach ($signatures as $sig):
-            ?>
-            <tr>
-                <td class="col-num"><?= $num++ ?></td>
-                <td><?= htmlspecialchars($sig['first_name']) ?></td>
-                <td><?= htmlspecialchars($sig['last_name']) ?></td>
-                <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
-                <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
-                <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
-                <td><?= htmlspecialchars($sig['email']) ?></td>
-                <td class="col-signature"><img src="<?= $sig['signature_data'] ?>" class="signature-img" /></td>
-            </tr>
-            <?php endforeach; ?>
+    <!-- Tables par jour -->
+    <?php foreach ($eventDays as $dayIndex => $day): ?>
+        <?php $daySignatures = $signaturesByDay[$day]; ?>
 
-            <?php
-            // Ajouter seulement 3 lignes vides supplémentaires (optimisation papier)
-            $emptyRows = min(3, 10 - count($signatures));
-            if ($emptyRows < 0) $emptyRows = 0;
-            for ($i = 0; $i < $emptyRows; $i++):
-            ?>
-            <tr class="empty-row">
-                <td class="col-num"><?= $num++ ?></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-            <?php endfor; ?>
-        </tbody>
-    </table>
+        <?php if ($isMultiDay): ?>
+        <!-- Titre du jour -->
+        <div class="day-header" <?= $dayIndex > 0 ? 'style="page-break-before: always;"' : '' ?>>
+            <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
+            <span class="day-count">(<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)</span>
+        </div>
+        <?php endif; ?>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-num">N°</th>
+                    <th>Prénom</th>
+                    <th>Nom</th>
+                    <th>Structure</th>
+                    <th>Fonction</th>
+                    <th>Téléphone</th>
+                    <th>Email</th>
+                    <th class="col-signature">Signature</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $num = 1;
+                foreach ($daySignatures as $sig):
+                ?>
+                <tr>
+                    <td class="col-num"><?= $num++ ?></td>
+                    <td><?= htmlspecialchars($sig['first_name']) ?></td>
+                    <td><?= htmlspecialchars($sig['last_name']) ?></td>
+                    <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
+                    <td><?= htmlspecialchars($sig['email']) ?></td>
+                    <td class="col-signature"><img src="<?= $sig['signature_data'] ?>" class="signature-img" /></td>
+                </tr>
+                <?php endforeach; ?>
+
+                <?php
+                // Ajouter seulement 3 lignes vides supplémentaires (optimisation papier)
+                $emptyRows = min(3, 10 - count($daySignatures));
+                if ($emptyRows < 0) $emptyRows = 0;
+                for ($i = 0; $i < $emptyRows; $i++):
+                ?>
+                <tr class="empty-row">
+                    <td class="col-num"><?= $num++ ?></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <?php endfor; ?>
+            </tbody>
+        </table>
+    <?php endforeach; ?>
 
     <!-- Footer -->
     <div class="footer">
-        <span><strong>Total participants :</strong> <?= count($signatures) ?></span>
+        <?php if ($isMultiDay): ?>
+            <span><strong>Total signatures :</strong> <?= count($signatures) ?> (sur <?= count($eventDays) ?> jours)</span>
+        <?php else: ?>
+            <span><strong>Total participants :</strong> <?= count($signatures) ?></span>
+        <?php endif; ?>
         <span><strong>Document généré le :</strong> <?= date('d/m/Y à H:i') ?></span>
     </div>
 </body>

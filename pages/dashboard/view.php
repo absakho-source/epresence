@@ -55,14 +55,44 @@ if (!$isOwner && !$canViewAsStructureAdmin && !$canViewAsDGAdmin && !$canViewAsG
     redirect(SITE_URL . '/pages/dashboard/index.php');
 }
 
+// Déterminer si c'est un événement multi-jours
+$isMultiDay = !empty($sheet['end_date']) && $sheet['end_date'] !== $sheet['event_date'];
+
+// Générer la liste des jours si multi-jours
+$eventDays = [];
+if ($isMultiDay) {
+    $startDate = new DateTime($sheet['event_date']);
+    $endDate = new DateTime($sheet['end_date']);
+    $interval = new DateInterval('P1D');
+    $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+    foreach ($period as $date) {
+        $eventDays[] = $date->format('Y-m-d');
+    }
+} else {
+    $eventDays[] = $sheet['event_date'];
+}
+
 // Récupérer les signatures
 $signaturesStmt = db()->prepare("
     SELECT * FROM signatures
     WHERE sheet_id = ?
-    ORDER BY signed_at ASC
+    ORDER BY signed_for_date ASC, signed_at ASC
 ");
 $signaturesStmt->execute([$sheetId]);
 $signatures = $signaturesStmt->fetchAll();
+
+// Grouper les signatures par jour pour les événements multi-jours
+$signaturesByDay = [];
+foreach ($eventDays as $day) {
+    $signaturesByDay[$day] = [];
+}
+foreach ($signatures as $sig) {
+    $day = $sig['signed_for_date'] ?? $sheet['event_date'];
+    if (!isset($signaturesByDay[$day])) {
+        $signaturesByDay[$day] = [];
+    }
+    $signaturesByDay[$day][] = $sig;
+}
 
 // Récupérer les documents attachés
 $documentsStmt = db()->prepare("
@@ -250,7 +280,12 @@ require_once __DIR__ . '/../../includes/header.php';
                 <?php endif; ?>
                 <p class="mb-2">
                     <i class="bi bi-calendar-event me-2 text-muted"></i>
-                    <strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?>
+                    <?php if ($isMultiDay): ?>
+                        <strong>Dates :</strong> Du <?= formatDateFr($sheet['event_date']) ?> au <?= formatDateFr($sheet['end_date']) ?>
+                        <span class="badge bg-info ms-1"><?= count($eventDays) ?> jours</span>
+                    <?php else: ?>
+                        <strong>Date :</strong> <?= formatDateFr($sheet['event_date']) ?>
+                    <?php endif; ?>
                 </p>
                 <?php if ($sheet['event_time'] || (isset($sheet['end_time']) && $sheet['end_time'])): ?>
                 <p class="mb-2">
@@ -443,7 +478,12 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="col-lg-8">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-vector-pen me-2"></i>Signatures (<?= count($signatures) ?>)</h5>
+                <h5 class="mb-0">
+                    <i class="bi bi-vector-pen me-2"></i>Signatures (<?= count($signatures) ?>)
+                    <?php if ($isMultiDay): ?>
+                        <small class="text-muted ms-2">sur <?= count($eventDays) ?> jours</small>
+                    <?php endif; ?>
+                </h5>
                 <?php if ($sheet['status'] === 'active'): ?>
                     <button type="button" class="btn btn-sm btn-outline-primary" onclick="location.reload()">
                         <i class="bi bi-arrow-clockwise me-1"></i>Actualiser
@@ -460,6 +500,105 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php if ($sheet['status'] === 'active'): ?>
                             <p>Partagez le QR code ou le lien pour commencer à collecter les signatures.</p>
                         <?php endif; ?>
+                    </div>
+                <?php elseif ($isMultiDay): ?>
+                    <!-- Affichage multi-jours avec onglets -->
+                    <?php
+                    $dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                    $monthNames = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+                    ?>
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <?php foreach ($eventDays as $idx => $day):
+                            $dateObj = new DateTime($day);
+                            $dayCount = count($signaturesByDay[$day] ?? []);
+                            $dayLabel = $dayNames[(int)$dateObj->format('w')] . ' ' . $dateObj->format('j');
+                        ?>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link <?= $idx === 0 ? 'active' : '' ?>" id="day-<?= $idx ?>-tab"
+                                data-bs-toggle="tab" data-bs-target="#day-<?= $idx ?>" type="button"
+                                role="tab" aria-controls="day-<?= $idx ?>" aria-selected="<?= $idx === 0 ? 'true' : 'false' ?>">
+                                <?= $dayLabel ?>
+                                <span class="badge <?= $dayCount > 0 ? 'bg-primary' : 'bg-secondary' ?> ms-1"><?= $dayCount ?></span>
+                            </button>
+                        </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <div class="tab-content">
+                        <?php foreach ($eventDays as $idx => $day):
+                            $daySigs = $signaturesByDay[$day] ?? [];
+                        ?>
+                        <div class="tab-pane fade <?= $idx === 0 ? 'show active' : '' ?>" id="day-<?= $idx ?>"
+                             role="tabpanel" aria-labelledby="day-<?= $idx ?>-tab">
+                            <?php if (empty($daySigs)): ?>
+                                <div class="text-center py-4 text-muted">
+                                    <i class="bi bi-calendar-x d-block mb-2" style="font-size: 2rem;"></i>
+                                    Aucune signature pour ce jour
+                                </div>
+                            <?php else: ?>
+                            <div class="table-responsive">
+                            <table class="table table-hover table-sm mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;">#</th>
+                                        <th>Nom complet</th>
+                                        <th>Structure</th>
+                                        <th>Fonction</th>
+                                        <th>Contacts</th>
+                                        <th style="width: 80px;">Signature</th>
+                                        <?php if ($canManageSignatures): ?>
+                                        <th style="width: 70px;">Actions</th>
+                                        <?php endif; ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($daySigs as $index => $sig): ?>
+                                        <tr>
+                                            <td><?= $index + 1 ?></td>
+                                            <td>
+                                                <strong><?= sanitize($sig['first_name']) ?> <?= sanitize($sig['last_name']) ?></strong>
+                                            </td>
+                                            <td><?= $sig['structure'] ? sanitize($sig['structure']) : '-' ?></td>
+                                            <td><?= $sig['function_title'] ? sanitize($sig['function_title']) : '-' ?></td>
+                                            <td>
+                                                <small><?= sanitize($sig['email']) ?></small>
+                                                <?php if ($sig['phone']): ?>
+                                                    <br><small class="text-muted"><i class="bi bi-telephone me-1"></i><?= formatPhone($sig['phone']) ?></small>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <img src="<?= $sig['signature_data'] ?>" alt="Signature" class="signature-preview">
+                                            </td>
+                                            <?php if ($canManageSignatures): ?>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button type="button" class="btn btn-outline-primary" title="Modifier"
+                                                        data-bs-toggle="modal" data-bs-target="#editSignatureModal"
+                                                        data-sig-id="<?= $sig['id'] ?>"
+                                                        data-sig-firstname="<?= sanitize($sig['first_name']) ?>"
+                                                        data-sig-lastname="<?= sanitize($sig['last_name']) ?>"
+                                                        data-sig-function="<?= sanitize($sig['function_title'] ?? '') ?>"
+                                                        data-sig-phone="<?= sanitize($sig['phone'] ?? '') ?>"
+                                                        data-sig-phone2="<?= sanitize($sig['phone_secondary'] ?? '') ?>"
+                                                        data-sig-structure="<?= sanitize($sig['structure'] ?? '') ?>">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger" title="Supprimer"
+                                                        data-bs-toggle="modal" data-bs-target="#deleteSignatureModal"
+                                                        data-sig-id="<?= $sig['id'] ?>"
+                                                        data-sig-name="<?= sanitize($sig['first_name'] . ' ' . $sig['last_name']) ?>">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                            <?php endif; ?>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <?php endforeach; ?>
                     </div>
                 <?php else: ?>
                     <div class="table-responsive">

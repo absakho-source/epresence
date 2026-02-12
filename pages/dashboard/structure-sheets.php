@@ -62,17 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
     redirect(SITE_URL . '/pages/dashboard/structure-sheets.php?structure=' . urlencode($structureName));
 }
 
-// Récupérer les feuilles de cette structure (en cherchant toutes les variantes du nom)
+// Récupérer les feuilles de cette structure (via creator_structure de la feuille, pas de l'utilisateur)
 $placeholders = implode(',', array_fill(0, count($structureVariants), '?'));
 $sheetsQuery = db()->prepare("
     SELECT s.*,
+           COALESCE(u.first_name || ' ' || u.last_name, s.creator_name, 'Utilisateur supprimé') as display_creator_name,
            u.first_name as creator_first_name,
            u.last_name as creator_last_name,
-           u.structure as creator_structure,
            (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count
     FROM sheets s
-    JOIN users u ON s.user_id = u.id
-    WHERE u.structure IN ($placeholders)
+    LEFT JOIN users u ON s.user_id = u.id
+    WHERE s.creator_structure IN ($placeholders)
     ORDER BY s.created_at DESC
 ");
 $sheetsQuery->execute($structureVariants);
@@ -127,7 +127,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                     <small class="text-muted">à <?= formatTime($sheet['event_time']) ?></small>
                                 <?php endif; ?>
                             </td>
-                            <td><?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?></td>
+                            <td><?= sanitize($sheet['display_creator_name'] ?? 'Utilisateur supprimé') ?></td>
                             <td><span class="badge bg-light text-dark"><?= $sheet['signature_count'] ?></span></td>
                             <td>
                                 <?php

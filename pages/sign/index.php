@@ -30,6 +30,23 @@ if (empty($code)) {
         $docStmt = db()->prepare("SELECT * FROM sheet_documents WHERE sheet_id = ? ORDER BY document_type, uploaded_at");
         $docStmt->execute([$sheet['id']]);
         $documents = $docStmt->fetchAll();
+
+        // Déterminer si c'est un événement multi-jours
+        $isMultiDay = isset($sheet['end_date']) && $sheet['end_date'] && $sheet['end_date'] !== $sheet['event_date'];
+
+        // Générer la liste des jours si multi-jours
+        $eventDays = [];
+        if ($isMultiDay) {
+            $startDate = new DateTime($sheet['event_date']);
+            $endDate = new DateTime($sheet['end_date']);
+            $interval = new DateInterval('P1D');
+            $period = new DatePeriod($startDate, $interval, $endDate->modify('+1 day'));
+            foreach ($period as $date) {
+                $eventDays[] = $date->format('Y-m-d');
+            }
+        } else {
+            $eventDays[] = $sheet['event_date'];
+        }
         // Vérifier si la feuille doit être auto-clôturée
         if (isset($sheet['auto_close']) && $sheet['auto_close'] && isset($sheet['end_time']) && $sheet['end_time']) {
             $eventDate = $sheet['event_date'];
@@ -173,6 +190,36 @@ $bodyClass = 'sign-page';
             flex: 1;
             min-width: 0;
         }
+        /* Days selection for multi-day events */
+        .days-selection {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .day-check {
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            transition: all 0.2s;
+        }
+        .day-check:hover {
+            border-color: #00703c;
+        }
+        .day-check.today {
+            border-color: #00703c;
+            background: #f0fff4;
+        }
+        .day-check .form-check-input:checked + .form-check-label {
+            font-weight: 600;
+            color: #00703c;
+        }
+        .day-check:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body class="sign-page">
@@ -212,7 +259,12 @@ $bodyClass = 'sign-page';
                                 <?php endif; ?>
                                 <div class="small text-muted">
                                     <i class="bi bi-calendar-event me-1"></i>
-                                    <?= formatDateFr($sheet['event_date']) ?>
+                                    <?php if ($isMultiDay): ?>
+                                        Du <?= formatDateFr($sheet['event_date']) ?> au <?= formatDateFr($sheet['end_date']) ?>
+                                        <span class="badge bg-info ms-1"><?= count($eventDays) ?> jours</span>
+                                    <?php else: ?>
+                                        <?= formatDateFr($sheet['event_date']) ?>
+                                    <?php endif; ?>
                                     <?php if ($sheet['event_time']): ?>
                                         à <?= formatTime($sheet['event_time']) ?>
                                         <?php if (isset($sheet['end_time']) && $sheet['end_time']): ?>
@@ -330,6 +382,42 @@ $bodyClass = 'sign-page';
                                     <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
                                 </div>
 
+                                <?php if ($isMultiDay): ?>
+                                <!-- Sélection des jours (événement multi-jours) -->
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        Jour(s) de présence <span class="text-danger">*</span>
+                                        <small class="text-muted d-block">Cochez les jours où vous êtes/serez présent(e)</small>
+                                    </label>
+                                    <div class="days-selection">
+                                        <?php
+                                        $dayNames = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+                                        $monthNames = ['', 'janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+                                        $today = date('Y-m-d');
+                                        foreach ($eventDays as $index => $day):
+                                            $dateObj = new DateTime($day);
+                                            $dayNum = (int)$dateObj->format('w');
+                                            $dayLabel = $dayNames[$dayNum] . ' ' . $dateObj->format('j') . ' ' . $monthNames[(int)$dateObj->format('n')];
+                                            $isToday = $day === $today;
+                                        ?>
+                                        <div class="form-check day-check <?= $isToday ? 'today' : '' ?>">
+                                            <input class="form-check-input" type="checkbox" name="signed_days[]"
+                                                   value="<?= $day ?>" id="day_<?= $index ?>"
+                                                   <?= $isToday ? 'checked' : '' ?>>
+                                            <label class="form-check-label" for="day_<?= $index ?>">
+                                                <?= $dayLabel ?>
+                                                <?php if ($isToday): ?>
+                                                    <span class="badge bg-success ms-1">Aujourd'hui</span>
+                                                <?php endif; ?>
+                                            </label>
+                                        </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                                <?php else: ?>
+                                <input type="hidden" name="signed_days[]" value="<?= $sheet['event_date'] ?>">
+                                <?php endif; ?>
+
                                 <!-- Signature -->
                                 <div class="mb-3">
                                     <label class="form-label">Signature <span class="text-danger">*</span></label>
@@ -368,6 +456,61 @@ $bodyClass = 'sign-page';
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Clé localStorage pour les données du participant
+        const STORAGE_KEY = 'epresence_participant_data';
+
+        // Charger les données sauvegardées et préremplir le formulaire
+        function loadSavedData() {
+            try {
+                const savedData = localStorage.getItem(STORAGE_KEY);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+
+                    // Préremplir les champs si ils existent
+                    if (data.first_name) document.getElementById('first_name').value = data.first_name;
+                    if (data.last_name) document.getElementById('last_name').value = data.last_name;
+                    if (data.email) document.getElementById('email').value = data.email;
+                    if (data.structure) document.getElementById('structure').value = data.structure;
+                    if (data.function_title) document.getElementById('function_title').value = data.function_title;
+
+                    // Téléphones avec indicatifs
+                    if (data.phone_country) document.getElementById('phone_country').value = data.phone_country;
+                    if (data.phone) document.getElementById('phone').value = data.phone;
+                    if (data.phone_secondary_country) document.getElementById('phone_secondary_country').value = data.phone_secondary_country;
+                    if (data.phone_secondary) document.getElementById('phone_secondary').value = data.phone_secondary;
+
+                    console.log('Données participant restaurées depuis le cache local');
+                }
+            } catch (e) {
+                console.log('Impossible de charger les données sauvegardées:', e);
+            }
+        }
+
+        // Sauvegarder les données du formulaire
+        function saveFormData() {
+            try {
+                const data = {
+                    first_name: document.getElementById('first_name').value,
+                    last_name: document.getElementById('last_name').value,
+                    email: document.getElementById('email').value,
+                    structure: document.getElementById('structure').value,
+                    function_title: document.getElementById('function_title').value,
+                    phone_country: document.getElementById('phone_country').value,
+                    phone: document.getElementById('phone').value.replace(/^\+\d+\s*/, ''), // Sans indicatif
+                    phone_secondary_country: document.getElementById('phone_secondary_country').value,
+                    phone_secondary: document.getElementById('phone_secondary').value.replace(/^\+\d+\s*/, ''),
+                    saved_at: new Date().toISOString()
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                console.log('Données participant sauvegardées');
+            } catch (e) {
+                console.log('Impossible de sauvegarder les données:', e);
+            }
+        }
+
+        // Charger les données au démarrage
+        loadSavedData();
+
         // Formats par pays (indicatif => {maxDigits, format})
         const phoneFormats = {
             '+221': { maxDigits: 9, format: [2, 3, 2, 2] },       // Sénégal: XX XXX XX XX
@@ -543,6 +686,8 @@ $bodyClass = 'sign-page';
                 const data = await response.json();
 
                 if (data.success) {
+                    // Sauvegarder les données pour le prochain usage
+                    saveFormData();
                     window.location.href = 'confirm.php?code=<?= urlencode($code) ?>';
                 } else {
                     // Si session expirée, proposer de recharger la page
