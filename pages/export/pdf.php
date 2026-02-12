@@ -98,6 +98,32 @@ if (file_exists($logoMepcPath)) {
     $logoMepcBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoMepcPath));
 }
 
+// Logo de la structure du créateur (DGPPE, FONGIP, ANSD)
+$logoStructureBase64 = '';
+$creatorStructure = $sheet['creator_structure'] ?? '';
+
+// Mapping des structures vers leurs logos
+$structureLogos = [
+    'Direction Générale - DGPPE' => 'logo-dgppe.png',
+    'Direction de l\'Administration et du Personnel - DAP/DGPPE' => 'logo-dgppe.png',
+    'Direction de la Planification - DP' => 'logo-dgppe.png',
+    'Direction de la Prévision et des Études Économiques - DPEE' => 'logo-dgppe.png',
+    'Direction du Développement du Capital Humain - DDCH' => 'logo-dgppe.png',
+    'Centre d\'Études de Politiques pour le Développement - CEPOD' => 'logo-dgppe.png',
+    'Cellule de Suivi de l\'Intégration - CSI' => 'logo-dgppe.png',
+    'Unité de Coordination et de Suivi de la Politique Économique - UCSPE' => 'logo-dgppe.png',
+    'Services Régionaux de la Planification - SRP' => 'logo-dgppe.png',
+    'ANSD - Agence Nationale de la Statistique et de la Démographie' => 'logo-ansd.png',
+    'FONGIP - Fonds de Garantie des Investissements prioritaires' => 'logo-fongip.png',
+];
+
+if (isset($structureLogos[$creatorStructure])) {
+    $logoStructurePath = __DIR__ . '/../../assets/img/' . $structureLogos[$creatorStructure];
+    if (file_exists($logoStructurePath)) {
+        $logoStructureBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoStructurePath));
+    }
+}
+
 // Fallback: afficher HTML pour impression
 ?>
 <!DOCTYPE html>
@@ -158,9 +184,18 @@ if (file_exists($logoMepcPath)) {
         }
         .header-logo {
             flex-shrink: 0;
+            width: 120px;
         }
         .header-logo img {
             max-height: 110px;
+        }
+        .header-logo-right {
+            flex-shrink: 0;
+            width: 120px;
+            text-align: right;
+        }
+        .header-logo-right img {
+            max-height: 90px;
         }
         .header-content {
             flex: 1;
@@ -303,7 +338,7 @@ if (file_exists($logoMepcPath)) {
         </button>
     </div>
 
-    <!-- Header with logo left and centered title -->
+    <!-- Header with logo left, centered title, and structure logo right -->
     <div class="header">
         <div class="header-logo">
             <?php if ($logoMepcBase64): ?>
@@ -314,6 +349,11 @@ if (file_exists($logoMepcPath)) {
             <div class="platform-name">Plateforme d'Émargement Électronique (e-Présence)</div>
             <h1>FEUILLE D'ÉMARGEMENT</h1>
             <h2><?= htmlspecialchars($sheet['title']) ?></h2>
+        </div>
+        <div class="header-logo-right">
+            <?php if ($logoStructureBase64): ?>
+                <img src="<?= $logoStructureBase64 ?>" alt="Logo Structure">
+            <?php endif; ?>
         </div>
     </div>
 
