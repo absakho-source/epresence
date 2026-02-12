@@ -243,13 +243,18 @@ header('Expires: 0');
     <?php endif; ?>
 
     <!-- Tableaux des signatures par jour -->
-    <?php foreach ($eventDays as $dayIndex => $day): ?>
-        <?php $daySignatures = $signaturesByDay[$day]; ?>
+    <?php
+    $displayedDayIndex = 0;
+    foreach ($eventDays as $day):
+        $daySignatures = $signaturesByDay[$day];
+        // Ignorer les jours sans signatures
+        if (empty($daySignatures)) continue;
+    ?>
 
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
-        <div class="day-header<?= $dayIndex > 0 ? ' new-page' : '' ?>">
-            <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
+        <div class="day-header<?= $displayedDayIndex > 0 ? ' new-page' : '' ?>">
+            <strong><?= formatDateFr($day) ?></strong>
             (<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)
         </div>
         <?php endif; ?>
@@ -309,7 +314,7 @@ header('Expires: 0');
                 <?php endfor; ?>
             </tbody>
         </table>
-    <?php endforeach; ?>
+    <?php $displayedDayIndex++; endforeach; ?>
 
     <!-- Pied de page -->
     <div class="footer-section">
