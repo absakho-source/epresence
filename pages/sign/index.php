@@ -399,26 +399,26 @@ $bodyClass = 'sign-page';
                                     </div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
+                                </div>
+
                                 <div class="row">
-                                    <div class="col-12 col-sm-6 mb-3">
+                                    <div class="col-6 mb-3">
                                         <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control phone-country-code" id="phone_country" value="+221" maxlength="5">
                                             <input type="tel" class="form-control phone-input" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
                                         </div>
                                     </div>
-                                    <div class="col-12 col-sm-6 mb-3">
+                                    <div class="col-6 mb-3">
                                         <label for="phone_secondary" class="form-label">Tél. secondaire</label>
                                         <div class="input-group">
                                             <input type="text" class="form-control phone-country-code" id="phone_secondary_country" value="+221" maxlength="5">
                                             <input type="tel" class="form-control phone-input" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                                    <input type="email" class="form-control" id="email" name="email" required autocomplete="email">
                                 </div>
 
                                 <?php if ($isMultiDay): ?>

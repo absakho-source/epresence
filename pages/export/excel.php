@@ -259,11 +259,11 @@ header('Expires: 0');
             <thead>
                 <tr>
                     <th class="col-num">N°</th>
-                    <th>Prénom</th>
+                    <th>Prénom(s)</th>
                     <th>Nom</th>
                     <th>Structure</th>
                     <th>Fonction</th>
-                    <th>Téléphone</th>
+                    <th>Téléphone(s)</th>
                     <th>Tél. secondaire</th>
                     <th>Email</th>
                     <th>Date signature</th>

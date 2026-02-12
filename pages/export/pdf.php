@@ -271,7 +271,7 @@ if ($structureLogo) {
             background-color: #00703c;
             color: white;
             padding: 6px 4px;
-            text-align: left;
+            text-align: center;
             font-weight: bold;
             border: 1px solid #005a30;
             font-size: 11px;
@@ -295,8 +295,8 @@ if ($structureLogo) {
             height: 35px;
         }
         .col-num { width: 20px; text-align: center; }
-        .col-phone { width: 75px; }
-        .col-email { min-width: 130px; }
+        .col-phone { width: 100px; }
+        .col-email { width: 100px; }
         .col-signature { text-align: center; width: 130px; min-width: 130px; }
 
         /* Day header for multi-day events */
@@ -408,11 +408,11 @@ if ($structureLogo) {
             <thead>
                 <tr>
                     <th class="col-num">N°</th>
-                    <th>Prénom</th>
+                    <th>Prénom(s)</th>
                     <th>Nom</th>
                     <th>Structure</th>
                     <th>Fonction</th>
-                    <th class="col-phone">Téléphone</th>
+                    <th class="col-phone">Téléphone(s)</th>
                     <th class="col-email">Email</th>
                     <th class="col-signature">Signature</th>
                 </tr>
