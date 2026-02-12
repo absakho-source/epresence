@@ -324,5 +324,8 @@ header('Expires: 0');
             </tr>
         </table>
     </div>
+    <div style="text-align: center; margin-top: 10px; font-size: 9pt; color: #999;">
+        © <?= date('Y') ?> e-Présence - Plateforme d'Émargement Électronique
+    </div>
 </body>
 </html>

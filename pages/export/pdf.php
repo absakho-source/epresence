@@ -399,5 +399,8 @@ if (file_exists($logoMepcPath)) {
         <?php endif; ?>
         <span><strong>Document généré le :</strong> <?= date('d/m/Y à H:i') ?></span>
     </div>
+    <div style="text-align: center; margin-top: 10px; font-size: 9px; color: #999;">
+        © <?= date('Y') ?> e-Présence - Plateforme d'Émargement Électronique
+    </div>
 </body>
 </html>
