@@ -121,8 +121,8 @@ if (file_exists($logoMepcPath)) {
         }
         body {
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 11px;
-            line-height: 1.3;
+            font-size: 12px;
+            line-height: 1.4;
             color: #333;
             max-width: 297mm;
             margin: 0 auto;
@@ -187,13 +187,13 @@ if (file_exists($logoMepcPath)) {
         /* Event Info */
         .event-info {
             background-color: #f5f5f5;
-            padding: 5px 15px;
+            padding: 6px 15px;
             border-radius: 3px;
             margin-bottom: 6px;
             display: flex;
             justify-content: center;
             gap: 40px;
-            font-size: 11px;
+            font-size: 12px;
         }
         .event-info strong {
             color: #00703c;
@@ -218,18 +218,19 @@ if (file_exists($logoMepcPath)) {
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 10px;
+            font-size: 11px;
         }
         th {
             background-color: #00703c;
             color: white;
-            padding: 5px 3px;
+            padding: 6px 4px;
             text-align: left;
             font-weight: bold;
             border: 1px solid #005a30;
+            font-size: 11px;
         }
         td {
-            padding: 4px 3px;
+            padding: 5px 4px;
             border: 1px solid #ccc;
             vertical-align: middle;
         }
@@ -247,6 +248,8 @@ if (file_exists($logoMepcPath)) {
             height: 35px;
         }
         .col-num { width: 20px; text-align: center; }
+        .col-phone { width: 75px; }
+        .col-email { min-width: 130px; }
         .col-signature { text-align: center; width: 130px; min-width: 130px; }
 
         /* Day header for multi-day events */
@@ -357,8 +360,8 @@ if (file_exists($logoMepcPath)) {
                     <th>Nom</th>
                     <th>Structure</th>
                     <th>Fonction</th>
-                    <th>Téléphone</th>
-                    <th>Email</th>
+                    <th class="col-phone">Téléphone</th>
+                    <th class="col-email">Email</th>
                     <th class="col-signature">Signature</th>
                 </tr>
             </thead>
@@ -373,8 +376,8 @@ if (file_exists($logoMepcPath)) {
                     <td><?= htmlspecialchars($sig['last_name']) ?></td>
                     <td><?= htmlspecialchars($sig['structure'] ?? '-') ?></td>
                     <td><?= htmlspecialchars($sig['function_title'] ?? '-') ?></td>
-                    <td><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
-                    <td><?= htmlspecialchars($sig['email']) ?></td>
+                    <td class="col-phone"><?= htmlspecialchars(formatPhone($sig['phone'])) ?><?php if (!empty($sig['phone_secondary'])): ?><br><small><?= htmlspecialchars(formatPhone($sig['phone_secondary'])) ?></small><?php endif; ?></td>
+                    <td class="col-email"><?= htmlspecialchars($sig['email']) ?></td>
                     <td class="col-signature"><img src="<?= $sig['signature_data'] ?>" class="signature-img" /></td>
                 </tr>
                 <?php endforeach; ?>
