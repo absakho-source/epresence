@@ -237,17 +237,17 @@ if (file_exists($logoMepcPath)) {
             background-color: #f9f9f9;
         }
         .signature-img {
-            max-width: 100px;
-            height: 30px;
+            max-width: 120px;
+            height: 35px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
         }
         .empty-row td {
-            height: 30px;
+            height: 35px;
         }
         .col-num { width: 20px; text-align: center; }
-        .col-signature { text-align: center; width: 110px; }
+        .col-signature { text-align: center; width: 130px; min-width: 130px; }
 
         /* Day header for multi-day events */
         .day-header {
