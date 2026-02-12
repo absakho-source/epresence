@@ -31,6 +31,31 @@ if ($sheet['user_id'] != getCurrentUserId() && !isAdmin()) {
 }
 
 $signUrl = getSheetUrl($sheet['unique_code']);
+
+// Déterminer le logo de structure du créateur (DGPPE, FONGIP, ANSD)
+$structureLogo = null;
+$creatorStructure = $sheet['creator_structure'] ?? '';
+if (!empty($creatorStructure)) {
+    // DGPPE - toutes les structures de la DGPPE
+    $dgppeKeywords = ['DGPPE', 'DAP/DGPPE', 'Direction de la Planification', 'Direction de la Prévision',
+                      'DPEE', 'DDCH', 'CEPOD', 'CSI', 'UCSPE', 'SRP', 'Capital Humain'];
+    foreach ($dgppeKeywords as $keyword) {
+        if (stripos($creatorStructure, $keyword) !== false) {
+            $structureLogo = 'logo-dgppe.png';
+            break;
+        }
+    }
+
+    // ANSD
+    if (!$structureLogo && stripos($creatorStructure, 'ANSD') !== false) {
+        $structureLogo = 'logo-ansd.png';
+    }
+
+    // FONGIP
+    if (!$structureLogo && stripos($creatorStructure, 'FONGIP') !== false) {
+        $structureLogo = 'logo-fongip.png';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -75,6 +100,16 @@ $signUrl = getSheetUrl($sheet['unique_code']);
 
         .official-header .logo {
             height: 100px;
+            flex-shrink: 0;
+        }
+
+        .official-header .logo-right {
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        .official-header .logo-placeholder {
+            width: 60px;
             flex-shrink: 0;
         }
 
@@ -345,6 +380,11 @@ $signUrl = getSheetUrl($sheet['unique_code']);
             <div class="header-content">
                 <div class="platform">Plateforme d'Émargement Électronique (e-Présence)</div>
             </div>
+            <?php if ($structureLogo): ?>
+            <img src="<?= SITE_URL ?>/assets/img/<?= $structureLogo ?>" alt="Logo Structure" class="logo-right">
+            <?php else: ?>
+            <span class="logo-placeholder"></span>
+            <?php endif; ?>
         </div>
 
         <!-- Titre de la réunion -->
