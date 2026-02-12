@@ -102,23 +102,32 @@ if (file_exists($logoMepcPath)) {
 $logoStructureBase64 = '';
 $creatorStructure = $sheet['creator_structure'] ?? '';
 
-// Mapping des structures vers leurs logos
-$structureLogos = [
-    'Direction Générale - DGPPE' => 'logo-dgppe.png',
-    'Direction de l\'Administration et du Personnel - DAP/DGPPE' => 'logo-dgppe.png',
-    'Direction de la Planification - DP' => 'logo-dgppe.png',
-    'Direction de la Prévision et des Études Économiques - DPEE' => 'logo-dgppe.png',
-    'Direction du Développement du Capital Humain - DDCH' => 'logo-dgppe.png',
-    'Centre d\'Études de Politiques pour le Développement - CEPOD' => 'logo-dgppe.png',
-    'Cellule de Suivi de l\'Intégration - CSI' => 'logo-dgppe.png',
-    'Unité de Coordination et de Suivi de la Politique Économique - UCSPE' => 'logo-dgppe.png',
-    'Services Régionaux de la Planification - SRP' => 'logo-dgppe.png',
-    'ANSD - Agence Nationale de la Statistique et de la Démographie' => 'logo-ansd.png',
-    'FONGIP - Fonds de Garantie des Investissements prioritaires' => 'logo-fongip.png',
-];
+// Déterminer le logo de structure basé sur des mots-clés
+$structureLogo = null;
+if (!empty($creatorStructure)) {
+    // DGPPE - toutes les structures de la DGPPE
+    $dgppeKeywords = ['DGPPE', 'DAP/DGPPE', 'Direction de la Planification', 'Direction de la Prévision',
+                      'DPEE', 'DDCH', 'CEPOD', 'CSI', 'UCSPE', 'SRP', 'Capital Humain'];
+    foreach ($dgppeKeywords as $keyword) {
+        if (stripos($creatorStructure, $keyword) !== false) {
+            $structureLogo = 'logo-dgppe.png';
+            break;
+        }
+    }
 
-if (isset($structureLogos[$creatorStructure])) {
-    $logoStructurePath = __DIR__ . '/../../assets/img/' . $structureLogos[$creatorStructure];
+    // ANSD
+    if (!$structureLogo && stripos($creatorStructure, 'ANSD') !== false) {
+        $structureLogo = 'logo-ansd.png';
+    }
+
+    // FONGIP
+    if (!$structureLogo && stripos($creatorStructure, 'FONGIP') !== false) {
+        $structureLogo = 'logo-fongip.png';
+    }
+}
+
+if ($structureLogo) {
+    $logoStructurePath = __DIR__ . '/../../assets/img/' . $structureLogo;
     if (file_exists($logoStructurePath)) {
         $logoStructureBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoStructurePath));
     }

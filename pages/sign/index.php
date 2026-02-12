@@ -14,8 +14,13 @@ if (empty($code)) {
     $pageTitle = 'Erreur';
     $error = 'Code de feuille manquant.';
 } else {
-    // Récupérer la feuille
-    $stmt = db()->prepare("SELECT * FROM sheets WHERE unique_code = ?");
+    // Récupérer la feuille avec la structure du créateur
+    $stmt = db()->prepare("
+        SELECT s.*, u.structure as creator_structure
+        FROM sheets s
+        JOIN users u ON s.user_id = u.id
+        WHERE s.unique_code = ?
+    ");
     $stmt->execute([$code]);
     $sheet = $stmt->fetch();
 
@@ -47,6 +52,31 @@ if (empty($code)) {
         } else {
             $eventDays[] = $sheet['event_date'];
         }
+        // Déterminer le logo de structure du créateur (DGPPE, FONGIP, ANSD)
+        $structureLogo = null;
+        $creatorStructure = $sheet['creator_structure'] ?? '';
+        if (!empty($creatorStructure)) {
+            // DGPPE - toutes les structures de la DGPPE
+            $dgppeKeywords = ['DGPPE', 'DAP/DGPPE', 'Direction de la Planification', 'Direction de la Prévision',
+                              'DPEE', 'DDCH', 'CEPOD', 'CSI', 'UCSPE', 'SRP', 'Capital Humain'];
+            foreach ($dgppeKeywords as $keyword) {
+                if (stripos($creatorStructure, $keyword) !== false) {
+                    $structureLogo = 'logo-dgppe.png';
+                    break;
+                }
+            }
+
+            // ANSD
+            if (!$structureLogo && stripos($creatorStructure, 'ANSD') !== false) {
+                $structureLogo = 'logo-ansd.png';
+            }
+
+            // FONGIP
+            if (!$structureLogo && stripos($creatorStructure, 'FONGIP') !== false) {
+                $structureLogo = 'logo-fongip.png';
+            }
+        }
+
         // Vérifier si la feuille doit être auto-clôturée
         if (isset($sheet['auto_close']) && $sheet['auto_close'] && isset($sheet['end_time']) && $sheet['end_time']) {
             $eventDate = $sheet['event_date'];
@@ -117,15 +147,19 @@ $bodyClass = 'sign-page';
         }
         .sign-logos {
             display: flex;
-            justify-content: center;
-            gap: 15px;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 10px;
+            padding: 0 10px;
         }
         .sign-logos img {
-            height: 40px;
+            height: 45px;
             background: white;
             padding: 5px;
             border-radius: 5px;
+        }
+        .sign-logos .logo-placeholder {
+            width: 55px;
         }
         .documents-section {
             background: #fff;
@@ -243,7 +277,12 @@ $bodyClass = 'sign-page';
                     <div class="card sign-card">
                         <div class="card-header sign-header text-center py-4">
                             <div class="sign-logos">
-                                <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_DGPPE ?>" alt="Logo DGPPE">
+                                <img src="<?= SITE_URL ?>/assets/img/<?= LOGO_MEPC ?>" alt="Logo MEPC">
+                                <?php if (!empty($structureLogo)): ?>
+                                <img src="<?= SITE_URL ?>/assets/img/<?= $structureLogo ?>" alt="Logo Structure">
+                                <?php else: ?>
+                                <span class="logo-placeholder"></span>
+                                <?php endif; ?>
                             </div>
                             <h4 class="text-white mb-0">
                                 <i class="bi bi-vector-pen me-2"></i>Feuille d'émargement
