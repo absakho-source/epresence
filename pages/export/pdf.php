@@ -285,23 +285,23 @@ if ($structureLogo) {
             background-color: #f9f9f9;
         }
         .signature-img {
-            max-width: 120px;
-            height: 35px;
+            max-width: 68px;
+            height: 30px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
         }
         .empty-row td {
-            height: 35px;
+            height: 30px;
         }
         .col-num { width: 20px; text-align: center; }
-        .col-prenom { width: 70px; }
-        .col-nom { width: 55px; }
-        .col-structure { width: 85px; }
-        .col-fonction { width: 70px; }
-        .col-phone { width: 80px; }
-        .col-email { width: 110px; }
-        .col-signature { text-align: center; width: 120px; min-width: 120px; }
+        .col-prenom { width: 78px; }
+        .col-nom { width: 63px; }
+        .col-structure { width: 93px; }
+        .col-fonction { width: 78px; }
+        .col-phone { width: 88px; }
+        .col-email { width: 118px; }
+        .col-signature { text-align: center; width: 72px; min-width: 72px; }
 
         /* Day header for multi-day events */
         .day-header {
