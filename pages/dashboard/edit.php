@@ -435,16 +435,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    eventDateInput.addEventListener('change', function() {
+    function onEventDateChange() {
         syncEndDate();
         updateTimeFieldsVisibility();
-    });
-    endDateInput.addEventListener('change', function() {
-        if (endDateInput.value < eventDateInput.value) {
+    }
+    function onEndDateChange() {
+        if (endDateInput.value && endDateInput.value < eventDateInput.value) {
             endDateInput.value = eventDateInput.value;
         }
         updateTimeFieldsVisibility();
-    });
+    }
+
+    eventDateInput.addEventListener('change', onEventDateChange);
+    eventDateInput.addEventListener('input', onEventDateChange);
+    endDateInput.addEventListener('change', onEndDateChange);
+    endDateInput.addEventListener('input', onEndDateChange);
 
     // Initialiser
     syncEndDate();
