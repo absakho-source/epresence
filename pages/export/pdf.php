@@ -295,8 +295,8 @@ if ($structureLogo) {
             height: 35px;
         }
         .col-num { width: 20px; text-align: center; }
-        .col-phone { width: 100px; }
-        .col-email { width: 100px; }
+        .col-phone { width: 95px; }
+        .col-email { width: 115px; }
         .col-signature { text-align: center; width: 130px; min-width: 130px; }
 
         /* Day header for multi-day events */
