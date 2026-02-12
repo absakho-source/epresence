@@ -68,13 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             setFlash('error', 'Erreur lors de la mise à jour.');
         }
     } elseif ($action === 'toggle_structure_admin' && $userId > 0) {
-        // Toggle super-utilisateur structure
+        // Toggle responsable de structure
         $user = getUserById($userId);
         if ($user) {
             $newValue = empty($user['is_structure_admin']);
             $stmt = db()->prepare("UPDATE users SET is_structure_admin = ? WHERE id = ?");
             if ($stmt->execute([$newValue, $userId])) {
-                setFlash('success', $newValue ? 'Utilisateur défini comme super-utilisateur de sa structure.' : 'Droits de super-utilisateur retirés.');
+                setFlash('success', $newValue ? 'Utilisateur défini comme Responsable de sa structure.' : 'Droits de Responsable retirés.');
             } else {
                 setFlash('error', 'Erreur lors de la mise à jour.');
             }
@@ -164,7 +164,7 @@ require_once __DIR__ . '/../../includes/header.php';
         <div class="card h-100" style="border-color: #fd7e14;">
             <div class="card-body dashboard-stat">
                 <div class="stat-number" style="color: #fd7e14;"><?= $globalStats['super_users'] ?></div>
-                <div class="stat-label">Super utilisateurs</div>
+                <div class="stat-label">Responsables</div>
             </div>
         </div>
     </div>
@@ -319,8 +319,8 @@ require_once __DIR__ . '/../../includes/header.php';
                                         ?>
                                         <small><?= $user['structure'] ? sanitize(getStructureName($user['structure'])) : '-' ?></small>
                                         <?php if (!empty($user['is_structure_admin']) && $user['structure']): ?>
-                                            <br><span class="badge <?= $isDGUser ? 'bg-danger' : 'bg-warning text-dark' ?>" title="<?= $isDGUser ? 'Voit TOUTES les feuilles de la DGPPE' : 'Voit les feuilles de: ' . sanitize($userCategory) ?>">
-                                                <i class="bi bi-star-fill me-1"></i><?= $isDGUser ? 'DG' : 'Super utilisateur' ?>
+                                            <br><span class="badge bg-warning text-dark" title="Voit les feuilles de: <?= sanitize($userCategory) ?>">
+                                                <i class="bi bi-star-fill me-1"></i>Responsable
                                             </span>
                                         <?php endif; ?>
                                     </td>
@@ -357,14 +357,14 @@ require_once __DIR__ . '/../../includes/header.php';
                                                 <i class="bi bi-pencil"></i>
                                             </button>
                                             <?php if (!empty($user['structure'])): ?>
-                                            <!-- Bouton Super-utilisateur -->
+                                            <!-- Bouton Responsable de structure -->
                                             <form method="POST" class="d-inline">
                                                 <?= csrfField() ?>
                                                 <input type="hidden" name="action" value="toggle_structure_admin">
                                                 <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                                 <button type="submit" class="btn btn-sm <?= !empty($user['is_structure_admin']) ? 'btn-warning' : 'btn-outline-warning' ?>"
-                                                        onclick="return confirm('<?= !empty($user['is_structure_admin']) ? 'Retirer les droits de super-utilisateur' : 'Définir comme super-utilisateur de sa structure' ?> ?')"
-                                                        title="<?= !empty($user['is_structure_admin']) ? 'Retirer super-utilisateur' : 'Définir super-utilisateur' ?>">
+                                                        onclick="return confirm('<?= !empty($user['is_structure_admin']) ? 'Retirer le rôle de Responsable' : 'Définir comme Responsable de structure' ?> ?')"
+                                                        title="<?= !empty($user['is_structure_admin']) ? 'Retirer Responsable' : 'Définir Responsable' ?>">
                                                     <i class="bi bi-star<?= !empty($user['is_structure_admin']) ? '-fill' : '' ?>"></i>
                                                 </button>
                                             </form>
@@ -510,31 +510,42 @@ require_once __DIR__ . '/../../includes/header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <!-- Section : Droits sur les feuilles -->
+                    <div class="mb-3 p-3 border rounded" style="border-color: #fd7e14 !important;">
+                        <h6 class="text-warning mb-2"><i class="bi bi-eye me-1"></i>Droits de consultation</h6>
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="editIsStructureAdmin" name="is_structure_admin">
                             <label class="form-check-label" for="editIsStructureAdmin">
-                                <i class="bi bi-star-fill text-warning me-1"></i>Super-utilisateur de structure
+                                <i class="bi bi-star-fill text-warning me-1"></i>Responsable de structure
                             </label>
-                            <div class="form-text">Peut voir les feuilles de sa catégorie de structure. <strong>Services propres</strong> ou <strong>Direction générale</strong> = accès à toutes les feuilles de sa catégorie.</div>
+                        </div>
+                        <div class="form-text">
+                            Peut voir les feuilles de sa Direction (ex: DGPPE, Cabinet, SG...)
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="editRole" class="form-label">Rôle</label>
-                            <select class="form-select" id="editRole" name="role">
-                                <option value="user">Utilisateur</option>
-                                <option value="admin">Administrateur</option>
-                            </select>
+
+                    <!-- Section : Administration plateforme -->
+                    <div class="mb-3 p-3 border rounded" style="border-color: #dc3545 !important;">
+                        <h6 class="text-danger mb-2"><i class="bi bi-shield-lock me-1"></i>Administration plateforme</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsAdmin" name="is_admin_checkbox">
+                            <label class="form-check-label" for="editIsAdmin">
+                                <i class="bi bi-shield-fill text-danger me-1"></i>Administrateur global
+                            </label>
                         </div>
-                        <div class="col-md-6">
-                            <label for="editStatus" class="form-label">Statut</label>
-                            <select class="form-select" id="editStatus" name="status">
-                                <option value="pending">En attente</option>
-                                <option value="active">Actif</option>
-                                <option value="suspended">Suspendu</option>
-                            </select>
+                        <div class="form-text">
+                            Accès à cette page, validation inscriptions, gestion utilisateurs
                         </div>
+                    </div>
+                    <input type="hidden" id="editRole" name="role" value="user">
+
+                    <div class="mb-3">
+                        <label for="editStatus" class="form-label">Statut du compte</label>
+                        <select class="form-select" id="editStatus" name="status">
+                            <option value="pending">En attente de validation</option>
+                            <option value="active">Actif</option>
+                            <option value="suspended">Suspendu</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -595,8 +606,17 @@ document.getElementById('editUserModal').addEventListener('show.bs.modal', funct
     document.getElementById('editFunctionTitle').value = button.getAttribute('data-function-title') || '';
     document.getElementById('editStructure').value = button.getAttribute('data-structure') || '';
     document.getElementById('editIsStructureAdmin').checked = button.getAttribute('data-is-structure-admin') === '1';
-    document.getElementById('editRole').value = button.getAttribute('data-role');
     document.getElementById('editStatus').value = button.getAttribute('data-status');
+
+    // Gérer la checkbox Admin
+    var isAdmin = button.getAttribute('data-role') === 'admin';
+    document.getElementById('editIsAdmin').checked = isAdmin;
+    document.getElementById('editRole').value = isAdmin ? 'admin' : 'user';
+});
+
+// Synchroniser la checkbox Admin avec le champ hidden role
+document.getElementById('editIsAdmin').addEventListener('change', function() {
+    document.getElementById('editRole').value = this.checked ? 'admin' : 'user';
 });
 
 // Remplir le modal de rejet

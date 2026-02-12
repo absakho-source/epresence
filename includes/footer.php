@@ -18,7 +18,6 @@
                     <small class="text-muted">© <?= date('Y') ?> <a href="https://www.linkedin.com/in/dr-aboubekrine-sakho-4851981b0/" target="_blank" class="text-decoration-none">Abou Sakho</a> - Tous droits réservés</small>
                 </div>
                 <div class="col-md-4 text-center text-md-end">
-                    <small class="text-muted">&copy; <?= date('Y') ?> <?= ORG_NAME ?></small>
                 </div>
             </div>
         </div>
