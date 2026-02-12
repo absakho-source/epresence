@@ -254,7 +254,7 @@ header('Expires: 0');
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
         <div class="day-header<?= $displayedDayIndex > 0 ? ' new-page' : '' ?>">
-            <strong><?= formatDateFr($day) ?></strong>
+            <strong>Jour <?= $displayedDayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             (<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)
         </div>
         <?php endif; ?>

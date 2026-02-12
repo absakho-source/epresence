@@ -339,7 +339,7 @@ if (file_exists($logoMepcPath)) {
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
         <div class="day-header<?= $displayedDayIndex > 0 ? ' new-page' : '' ?>">
-            <strong><?= formatDateFr($day) ?></strong>
+            <strong>Jour <?= $displayedDayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             <span class="day-count">(<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)</span>
         </div>
         <?php endif; ?>
