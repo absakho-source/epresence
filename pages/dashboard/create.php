@@ -11,7 +11,7 @@ $formData = [
     'title' => '',
     'description' => '',
     'event_date' => date('Y-m-d'),
-    'end_date' => date('Y-m-d'),
+    'end_date' => '', // Vide par défaut = événement d'un jour
     'event_time' => '',
     'end_time' => '',
     'auto_close' => false,
@@ -355,9 +355,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Synchroniser end_date avec event_date si end_date est vide ou antérieur
+    // Synchroniser end_date min avec event_date
     function syncEndDate() {
-        if (!endDateInput.value || endDateInput.value < eventDateInput.value) {
+        // Ne forcer la valeur que si elle est antérieure à event_date (pas si vide)
+        if (endDateInput.value && endDateInput.value < eventDateInput.value) {
             endDateInput.value = eventDateInput.value;
         }
         endDateInput.min = eventDateInput.value;
@@ -368,6 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const timeRequired = document.querySelectorAll('.time-required');
 
     function updateTimeFieldsVisibility() {
+        // Multi-jours si end_date est renseigné ET différent de event_date
         const isMultiDay = endDateInput.value && endDateInput.value !== eventDateInput.value;
         timeFields.forEach(field => {
             field.style.display = isMultiDay ? 'none' : '';
@@ -389,7 +391,7 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTimeFieldsVisibility();
     });
     endDateInput.addEventListener('change', function() {
-        if (endDateInput.value < eventDateInput.value) {
+        if (endDateInput.value && endDateInput.value < eventDateInput.value) {
             endDateInput.value = eventDateInput.value;
         }
         updateTimeFieldsVisibility();
