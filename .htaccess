@@ -1,0 +1,14 @@
+# Configuration PHP pour e-Présence
+<IfModule mod_php.c>
+    # Désactiver le cache OPcache
+    php_flag opcache.enable 0
+</IfModule>
+
+# Empêcher la mise en cache des fichiers PHP
+<IfModule mod_headers.c>
+    <FilesMatch "\.php$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>

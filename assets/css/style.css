@@ -1,0 +1,595 @@
+/**
+ * e-Présence DGPPE - Styles personnalisés
+ */
+
+/* Variables CSS - Couleurs DGPPE */
+:root {
+    --dgppe-green: #00703c;
+    --dgppe-green-dark: #005a30;
+    --dgppe-green-light: #00854a;
+    --dgppe-gold: #c5a028;
+    --dgppe-gold-light: #d4b03c;
+    --primary-color: #00703c;
+    --primary-dark: #005a30;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+}
+
+/* Base */
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+main {
+    flex: 1;
+}
+
+/* Top Bar (legacy) */
+.top-bar {
+    font-size: 0.8rem;
+}
+
+/* Official Header */
+.official-header {
+    background-color: #fff;
+}
+
+.official-header .official-titles {
+    line-height: 1.4;
+}
+
+.official-header .ministry-name {
+    font-size: 0.8rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.official-header .org-name {
+    font-size: 0.95rem;
+    color: #333;
+}
+
+.official-header .platform-name {
+    font-size: 1.1rem;
+    color: var(--dgppe-green);
+}
+
+@media (max-width: 768px) {
+    .official-header img {
+        height: 45px !important;
+    }
+
+    .official-header .ministry-name {
+        font-size: 0.7rem;
+    }
+
+    .official-header .org-name {
+        font-size: 0.8rem;
+    }
+
+    .official-header .platform-name {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .official-header img {
+        height: 40px !important;
+    }
+
+    .official-header .ministry-name {
+        display: none;
+    }
+
+    .official-header .org-name {
+        font-size: 0.75rem;
+    }
+
+    .official-header .platform-name {
+        font-size: 0.85rem;
+    }
+}
+
+/* Navbar DGPPE */
+.bg-dgppe {
+    background: linear-gradient(135deg, var(--dgppe-green) 0%, var(--dgppe-green-dark) 100%);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Brand Logo Wrapper */
+.brand-logo-wrapper {
+    background: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.brand-logo-wrapper img {
+    display: block;
+}
+
+.navbar-brand img {
+    background: white;
+    padding: 3px;
+    border-radius: 5px;
+}
+
+.brand-text {
+    line-height: 1.2;
+}
+
+.brand-title {
+    font-size: 1.05rem;
+}
+
+.brand-subtitle {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Override Bootstrap primary */
+.btn-primary {
+    background-color: var(--dgppe-green);
+    border-color: var(--dgppe-green);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--dgppe-green-dark);
+    border-color: var(--dgppe-green-dark);
+}
+
+.btn-outline-primary {
+    color: var(--dgppe-green);
+    border-color: var(--dgppe-green);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--dgppe-green);
+    border-color: var(--dgppe-green);
+    color: white;
+}
+
+.text-primary {
+    color: var(--dgppe-green) !important;
+}
+
+.bg-primary {
+    background-color: var(--dgppe-green) !important;
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.15s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Forms */
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--dgppe-green);
+    box-shadow: 0 0 0 0.25rem rgba(0, 112, 60, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+}
+
+/* Buttons */
+.btn {
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+}
+
+/* Tables */
+.table th {
+    font-weight: 600;
+    background-color: var(--dgppe-green);
+    color: white;
+}
+
+/* QR Code Container */
+.qr-code-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: inline-block;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--dgppe-green);
+}
+
+.qr-code-container canvas,
+.qr-code-container img {
+    display: block;
+    margin: 0 auto;
+}
+
+/* Signature Pad */
+.signature-container {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.signature-pad {
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #fff;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.signature-pad.signing {
+    border-color: var(--dgppe-green);
+}
+
+.signature-pad-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.signature-hint {
+    color: var(--secondary-color);
+    font-size: 0.875rem;
+}
+
+/* Sheet Status Badges */
+.badge-active {
+    background-color: var(--success-color);
+}
+
+.badge-closed {
+    background-color: var(--secondary-color);
+}
+
+.badge-archived {
+    background-color: var(--dark-color);
+}
+
+/* Dashboard Cards */
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
+}
+
+.dashboard-stat .stat-number {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--dgppe-green);
+}
+
+.dashboard-stat .stat-label {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Sheet List */
+.sheet-item {
+    border-left: 4px solid var(--dgppe-green);
+    transition: all 0.2s ease;
+}
+
+.sheet-item:hover {
+    border-left-color: var(--dgppe-green-dark);
+    background-color: var(--light-color);
+}
+
+.sheet-item.status-closed {
+    border-left-color: var(--secondary-color);
+}
+
+.sheet-item.status-archived {
+    border-left-color: var(--dark-color);
+}
+
+/* Signature confirmation page */
+.confirmation-icon {
+    font-size: 5rem;
+    color: var(--success-color);
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .footer,
+    .top-bar,
+    .no-print {
+        display: none !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #dee2e6 !important;
+    }
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .signature-pad {
+        width: 100%;
+        height: 200px;
+    }
+
+    .dashboard-stat .stat-number {
+        font-size: 1.8rem;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .brand-logo-wrapper {
+        padding: 2px 4px;
+    }
+
+    .brand-logo-wrapper img {
+        height: 30px !important;
+    }
+
+    .brand-title {
+        font-size: 0.9rem;
+    }
+
+    .footer-logo {
+        height: 30px !important;
+    }
+}
+
+/* Animation for signature confirmation */
+@keyframes checkmark {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-checkmark {
+    animation: checkmark 0.5s ease-in-out;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner 0.75s linear infinite;
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Copy link button */
+.copy-link-container {
+    position: relative;
+}
+
+.copy-link-container .copy-feedback {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.copy-link-container .copy-feedback.show {
+    opacity: 1;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--secondary-color);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: var(--dark-color);
+    margin-bottom: 10px;
+}
+
+/* Signature in table (dashboard view) */
+.signature-preview {
+    max-width: 70px;
+    height: 40px;
+    object-fit: contain;
+    display: block;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 2px;
+}
+
+/* Form page (sign) - DGPPE colors */
+.sign-page {
+    background: linear-gradient(135deg, var(--dgppe-green) 0%, var(--dgppe-green-dark) 100%);
+    min-height: 100vh;
+}
+
+.sign-page .card {
+    border-radius: 15px;
+}
+
+.sign-page .navbar {
+    background: transparent !important;
+}
+
+/* Hero section - DGPPE */
+.hero-section {
+    background: linear-gradient(135deg, var(--dgppe-green) 0%, var(--dgppe-green-dark) 100%);
+    color: white;
+    padding: 15px 0;
+    position: relative;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2"/></svg>');
+    background-size: 100px 100px;
+    opacity: 0.5;
+}
+
+.hero-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-section h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.hero-section .lead {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.hero-logos {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 8px;
+}
+
+.hero-logos img {
+    height: 60px;
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Feature cards */
+.feature-card {
+    text-align: center;
+    padding: 8px;
+}
+
+.feature-card .feature-icon {
+    font-size: 2rem;
+    color: var(--dgppe-green);
+    margin-bottom: 6px;
+}
+
+.feature-card h4 {
+    margin-bottom: 6px;
+    font-size: 1rem;
+}
+
+.feature-card p {
+    font-size: 0.85rem;
+    margin-bottom: 0;
+}
+
+/* Footer DGPPE */
+.footer {
+    border-top: 3px solid var(--dgppe-green);
+}
+
+.footer-logo {
+    background: white;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+/* Links */
+a {
+    color: var(--dgppe-green);
+}
+
+a:hover {
+    color: var(--dgppe-green-dark);
+}
+
+/* Dropdown menu */
+.dropdown-item:active,
+.dropdown-item:focus {
+    background-color: var(--dgppe-green);
+}
+
+/* Alerts */
+.alert-success {
+    border-left: 4px solid var(--dgppe-green);
+}
+
+/* Progress indicators */
+.progress-bar {
+    background-color: var(--dgppe-green);
+}
+
+/* Badge variations */
+.badge.bg-primary {
+    background-color: var(--dgppe-green) !important;
+}
+
+/* Page header with logo */
+.page-header-dgppe {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.page-header-dgppe img {
+    height: 50px;
+}

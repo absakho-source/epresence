@@ -1,0 +1,48 @@
+# Sessions
+sessions/*
+!sessions/.htaccess
+!sessions/index.php
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# Uploads (documents attachés aux feuilles)
+uploads/documents/*
+!uploads/documents/.gitkeep
+!uploads/.htaccess
+
+# Migration scripts (à supprimer après exécution)
+migrate-*.php
+
+# Temporary/test files
+check.php
+clear_cache.php
+test.php
+test-db.php
+debug.php
+racine-test.php
+
+# Deploy script (contains credentials)
+deploy.sh
+
+# Local config files
+config/config.local.php
+config/database.local.php
+config/config.prod.php
+config/database.prod.php
+
+# Environment files (optional, si vous utilisez .env)
+.env
+.env.local
