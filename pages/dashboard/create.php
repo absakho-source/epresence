@@ -74,7 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $errors[] = "La date est obligatoire.";
         }
 
-        if (empty($formData['event_time'])) {
+        // L'heure n'est obligatoire que pour les événements d'un seul jour
+        $isMultiDay = $formData['end_date'] !== $formData['event_date'];
+        if (!$isMultiDay && empty($formData['event_time'])) {
             $errors[] = "L'heure de début est obligatoire.";
         }
 
@@ -241,19 +243,19 @@ require_once __DIR__ . '/../../includes/header.php';
                                    value="<?= sanitize($formData['end_date']) ?>">
                             <div class="form-text">Même date que le début si événement d'un jour.</div>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="event_time" class="form-label">Heure de début <span class="text-danger">*</span></label>
+                        <div class="col-md-3 mb-3 time-fields">
+                            <label for="event_time" class="form-label">Heure de début <span class="text-danger time-required">*</span></label>
                             <input type="time" class="form-control" id="event_time" name="event_time"
-                                   value="<?= sanitize($formData['event_time']) ?>" required>
+                                   value="<?= sanitize($formData['event_time']) ?>">
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-3 time-fields">
                             <label for="end_time" class="form-label">Heure de fin</label>
                             <input type="time" class="form-control" id="end_time" name="end_time"
                                    value="<?= sanitize($formData['end_time']) ?>">
                         </div>
                     </div>
 
-                    <div class="mb-3">
+                    <div class="mb-3 time-fields">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="auto_close" name="auto_close"
                                    <?= $formData['auto_close'] ? 'checked' : '' ?>
@@ -332,6 +334,7 @@ require_once __DIR__ . '/../../includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Gestion du checkbox auto_close en fonction de l'heure de fin
+    const eventTimeInput = document.getElementById('event_time');
     const endTimeInput = document.getElementById('end_time');
     const autoCloseCheckbox = document.getElementById('auto_close');
     const autoCloseLabel = document.querySelector('label[for="auto_close"]');
@@ -360,15 +363,41 @@ document.addEventListener('DOMContentLoaded', function() {
         endDateInput.min = eventDateInput.value;
     }
 
-    eventDateInput.addEventListener('change', syncEndDate);
+    // Masquer/afficher les champs d'heure selon si c'est multi-jours
+    const timeFields = document.querySelectorAll('.time-fields');
+    const timeRequired = document.querySelectorAll('.time-required');
+
+    function updateTimeFieldsVisibility() {
+        const isMultiDay = endDateInput.value && endDateInput.value !== eventDateInput.value;
+        timeFields.forEach(field => {
+            field.style.display = isMultiDay ? 'none' : '';
+        });
+        // Rendre l'heure non obligatoire pour multi-jours
+        eventTimeInput.required = !isMultiDay;
+        timeRequired.forEach(el => {
+            el.style.display = isMultiDay ? 'none' : '';
+        });
+        if (isMultiDay) {
+            eventTimeInput.value = '';
+            endTimeInput.value = '';
+            autoCloseCheckbox.checked = false;
+        }
+    }
+
+    eventDateInput.addEventListener('change', function() {
+        syncEndDate();
+        updateTimeFieldsVisibility();
+    });
     endDateInput.addEventListener('change', function() {
         if (endDateInput.value < eventDateInput.value) {
             endDateInput.value = eventDateInput.value;
         }
+        updateTimeFieldsVisibility();
     });
 
     // Initialiser
     syncEndDate();
+    updateTimeFieldsVisibility();
 
     endTimeInput.addEventListener('change', updateAutoCloseState);
     endTimeInput.addEventListener('input', updateAutoCloseState);
