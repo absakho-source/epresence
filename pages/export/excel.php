@@ -202,6 +202,10 @@ header('Expires: 0');
             font-size: 12pt;
             color: #00703c;
         }
+        .day-header.new-page {
+            page-break-before: always;
+            break-before: page;
+        }
     </style>
 </head>
 <body>
@@ -244,7 +248,7 @@ header('Expires: 0');
 
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
-        <div class="day-header">
+        <div class="day-header<?= $dayIndex > 0 ? ' new-page' : '' ?>">
             <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             (<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)
         </div>

@@ -263,6 +263,10 @@ if (file_exists($logoMepcPath)) {
             color: #666;
             margin-left: 10px;
         }
+        .day-header.new-page {
+            page-break-before: always;
+            break-before: page;
+        }
 
         /* Footer */
         .footer {
@@ -329,7 +333,7 @@ if (file_exists($logoMepcPath)) {
 
         <?php if ($isMultiDay): ?>
         <!-- Titre du jour -->
-        <div class="day-header" <?= $dayIndex > 0 ? 'style="page-break-before: always;"' : '' ?>>
+        <div class="day-header<?= $dayIndex > 0 ? ' new-page' : '' ?>">
             <strong>Jour <?= $dayIndex + 1 ?> :</strong> <?= formatDateFr($day) ?>
             <span class="day-count">(<?= count($daySignatures) ?> participant<?= count($daySignatures) > 1 ? 's' : '' ?>)</span>
         </div>
