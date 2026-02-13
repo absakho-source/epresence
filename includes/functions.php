@@ -232,6 +232,29 @@ function formatPhone($phone) {
 }
 
 /**
+ * Normaliser un numéro de téléphone pour comparaison (détection doublons)
+ * Supprime espaces, tirets, points et indicatifs pays courants
+ */
+function normalizePhoneForComparison($phone) {
+    if (empty($phone)) {
+        return '';
+    }
+    // Supprimer tous les caractères non numériques
+    $normalized = preg_replace('/\D/', '', $phone);
+
+    // Supprimer les indicatifs pays courants (Sénégal, France, etc.)
+    $countryPrefixes = ['221', '33', '1', '225', '223', '222', '212', '216', '224', '237', '229', '228', '226', '227'];
+    foreach ($countryPrefixes as $prefix) {
+        if (strlen($normalized) > 9 && strpos($normalized, $prefix) === 0) {
+            $normalized = substr($normalized, strlen($prefix));
+            break;
+        }
+    }
+
+    return $normalized;
+}
+
+/**
  * Générer l'URL complète pour une feuille d'émargement
  */
 function getSheetUrl($uniqueCode) {
@@ -254,4 +277,67 @@ function jsonResponse($data, $statusCode = 200) {
     header('Content-Type: application/json');
     echo json_encode($data);
     exit;
+}
+
+/**
+ * Calculer le taux de présence
+ * @param int $signatureCount Nombre de signatures
+ * @param int|null $expectedParticipants Nombre attendu (peut être null)
+ * @return array|null ['ratio' => 'X/Y', 'percentage' => float, 'badge' => string] ou null si non défini
+ */
+function calculateAttendanceRate($signatureCount, $expectedParticipants) {
+    if ($expectedParticipants === null || $expectedParticipants <= 0) {
+        return null;
+    }
+
+    $percentage = round(($signatureCount / $expectedParticipants) * 100, 1);
+
+    // Classe CSS du badge selon le taux
+    if ($percentage >= 80) {
+        $badge = 'success';
+    } elseif ($percentage >= 50) {
+        $badge = 'warning';
+    } else {
+        $badge = 'danger';
+    }
+
+    return [
+        'ratio' => $signatureCount . '/' . $expectedParticipants,
+        'percentage' => $percentage,
+        'badge' => $badge
+    ];
+}
+
+/**
+ * Archiver automatiquement les feuilles de plus d'un an
+ * @return int Nombre de feuilles archivées
+ */
+function autoArchiveOldSheets() {
+    $oneYearAgo = date('Y-m-d', strtotime('-1 year'));
+
+    $stmt = db()->prepare("
+        UPDATE sheets
+        SET status = 'archived', archived_at = CURRENT_TIMESTAMP, archived_reason = 'auto'
+        WHERE status IN ('active', 'closed')
+        AND event_date < ?
+        AND (end_date IS NULL OR end_date < ?)
+    ");
+    $stmt->execute([$oneYearAgo, $oneYearAgo]);
+
+    return $stmt->rowCount();
+}
+
+/**
+ * Restaurer une feuille archivée
+ * @param int $sheetId ID de la feuille
+ * @return bool Succès
+ */
+function restoreArchivedSheet($sheetId) {
+    $stmt = db()->prepare("
+        UPDATE sheets
+        SET status = 'closed', archived_at = NULL, archived_reason = NULL
+        WHERE id = ? AND status = 'archived'
+    ");
+    $stmt->execute([$sheetId]);
+    return $stmt->rowCount() > 0;
 }

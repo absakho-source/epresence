@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize QR codes if containers exist
     initQRCodes();
+
+    // Initialize global search
+    initGlobalSearch();
 });
 
 /**
@@ -273,5 +276,135 @@ async function submitForm(form, options = {}) {
         }
     } finally {
         if (submitBtn) setButtonLoading(submitBtn, false);
+    }
+}
+
+/**
+ * Initialize global search functionality
+ */
+function initGlobalSearch() {
+    const searchInput = document.getElementById('globalSearchInput');
+    const searchResults = document.getElementById('searchResults');
+
+    if (!searchInput || !searchResults) return;
+
+    let searchTimeout = null;
+    let currentQuery = '';
+
+    // Get site URL from a data attribute or infer from current location
+    const siteUrl = document.body.dataset.siteUrl || window.location.origin;
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+
+        // Clear previous timeout
+        if (searchTimeout) clearTimeout(searchTimeout);
+
+        // Hide results if query is too short
+        if (query.length < 2) {
+            searchResults.classList.remove('show');
+            searchResults.innerHTML = '';
+            return;
+        }
+
+        // Debounce search (300ms)
+        searchTimeout = setTimeout(() => {
+            if (query !== currentQuery) {
+                currentQuery = query;
+                performSearch(query);
+            }
+        }, 300);
+    });
+
+    // Close results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove('show');
+        }
+    });
+
+    // Show results when focusing on input with existing query
+    searchInput.addEventListener('focus', function() {
+        if (this.value.trim().length >= 2 && searchResults.innerHTML) {
+            searchResults.classList.add('show');
+        }
+    });
+
+    async function performSearch(query) {
+        try {
+            const response = await fetch(`${siteUrl}/api/search.php?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            displayResults(data);
+        } catch (error) {
+            console.error('Erreur de recherche:', error);
+            searchResults.innerHTML = '<div class="dropdown-item text-danger">Erreur de recherche</div>';
+            searchResults.classList.add('show');
+        }
+    }
+
+    function displayResults(data) {
+        const sheets = data.sheets || [];
+        const participants = data.participants || [];
+
+        if (sheets.length === 0 && participants.length === 0) {
+            searchResults.innerHTML = '<div class="dropdown-item text-muted">Aucun résultat</div>';
+            searchResults.classList.add('show');
+            return;
+        }
+
+        let html = '';
+
+        // Feuilles
+        if (sheets.length > 0) {
+            html += '<h6 class="dropdown-header"><i class="bi bi-file-earmark-text me-1"></i>Feuilles</h6>';
+            sheets.forEach(sheet => {
+                const statusBadge = getStatusBadge(sheet.status);
+                html += `
+                    <a class="dropdown-item d-flex justify-content-between align-items-center" href="${siteUrl}/pages/dashboard/view.php?id=${sheet.id}">
+                        <div>
+                            <div class="fw-medium text-truncate" style="max-width: 250px;">${escapeHtml(sheet.title)}</div>
+                            <small class="text-muted">${sheet.date} - ${escapeHtml(sheet.creator)}</small>
+                        </div>
+                        <span class="badge ${statusBadge.class}">${statusBadge.label}</span>
+                    </a>
+                `;
+            });
+        }
+
+        // Participants
+        if (participants.length > 0) {
+            if (sheets.length > 0) {
+                html += '<div class="dropdown-divider"></div>';
+            }
+            html += '<h6 class="dropdown-header"><i class="bi bi-people me-1"></i>Participants</h6>';
+            participants.forEach(p => {
+                html += `
+                    <a class="dropdown-item" href="${siteUrl}/pages/dashboard/view.php?id=${p.sheet_id}">
+                        <div class="fw-medium">${escapeHtml(p.name)}</div>
+                        <small class="text-muted">${escapeHtml(p.email)}${p.structure ? ' - ' + escapeHtml(p.structure) : ''}</small>
+                        <div class="small text-primary"><i class="bi bi-file-earmark me-1"></i>${escapeHtml(p.sheet_title)}</div>
+                    </a>
+                `;
+            });
+        }
+
+        searchResults.innerHTML = html;
+        searchResults.classList.add('show');
+    }
+
+    function getStatusBadge(status) {
+        const badges = {
+            'active': { class: 'bg-success', label: 'Active' },
+            'closed': { class: 'bg-secondary', label: 'Clôturée' },
+            'archived': { class: 'bg-dark', label: 'Archivée' }
+        };
+        return badges[status] || { class: 'bg-secondary', label: status };
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 }

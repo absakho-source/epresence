@@ -39,7 +39,7 @@ $bodyClass = $bodyClass ?? '';
         <?= $extraCss ?>
     <?php endif; ?>
 </head>
-<body class="<?= sanitize($bodyClass) ?>">
+<body class="<?= sanitize($bodyClass) ?>" data-site-url="<?= SITE_URL ?>">
     <!-- En-tête officiel -->
     <header class="official-header bg-white border-bottom">
         <div class="container py-2">
@@ -81,6 +81,11 @@ $bodyClass = $bodyClass ?? '';
                                 <i class="bi bi-plus-circle me-1"></i>Nouvelle feuille
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="<?= SITE_URL ?>/pages/dashboard/statistics.php">
+                                <i class="bi bi-graph-up me-1"></i>Statistiques
+                            </a>
+                        </li>
                         <?php if (isAdmin()): ?>
                         <li class="nav-item">
                             <a class="nav-link text-warning" href="<?= SITE_URL ?>/pages/admin/index.php">
@@ -92,6 +97,15 @@ $bodyClass = $bodyClass ?? '';
                 </ul>
                 <ul class="navbar-nav align-items-center">
                     <?php if (isLoggedIn()): ?>
+                        <!-- Barre de recherche globale -->
+                        <li class="nav-item me-3 d-none d-lg-block">
+                            <div class="position-relative" id="globalSearchWrapper">
+                                <input type="search" class="form-control form-control-sm bg-white bg-opacity-10 border-0 text-white"
+                                       id="globalSearchInput" placeholder="Rechercher..." style="width: 200px;"
+                                       autocomplete="off">
+                                <div id="searchResults" class="dropdown-menu shadow" style="width: 350px; max-height: 400px; overflow-y: auto;"></div>
+                            </div>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-person-circle me-1"></i>

@@ -310,9 +310,17 @@ require_once __DIR__ . '/../../includes/header.php';
                         <strong>Lieu :</strong> <?= sanitize($sheet['location']) ?>
                     </p>
                 <?php endif; ?>
+                <?php $attendanceRate = calculateAttendanceRate(count($signatures), $sheet['expected_participants'] ?? null); ?>
                 <p class="mb-0">
                     <i class="bi bi-vector-pen me-2 text-muted"></i>
-                    <strong>Signatures :</strong> <?= count($signatures) ?>
+                    <strong>Signatures :</strong>
+                    <?php if ($attendanceRate): ?>
+                        <span class="badge bg-<?= $attendanceRate['badge'] ?>">
+                            <?= $attendanceRate['ratio'] ?> (<?= $attendanceRate['percentage'] ?>%)
+                        </span>
+                    <?php else: ?>
+                        <?= count($signatures) ?>
+                    <?php endif; ?>
                 </p>
             </div>
         </div>

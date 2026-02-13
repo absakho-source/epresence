@@ -7,6 +7,15 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
+// Archivage automatique des feuilles de plus d'un an (une fois par session)
+if (empty($_SESSION['auto_archive_checked'])) {
+    $archivedCount = autoArchiveOldSheets();
+    $_SESSION['auto_archive_checked'] = true;
+    if ($archivedCount > 0) {
+        setFlash('info', $archivedCount . ' feuille(s) de plus d\'un an archivée(s) automatiquement.');
+    }
+}
+
 $userId = getCurrentUserId();
 $currentUser = getCurrentUser();
 $isStructureAdmin = !empty($currentUser['is_structure_admin']) && !empty($currentUser['structure']);
@@ -37,6 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && verifyCsrfToken($_POST[CSRF_TOKEN_N
                 $updateStmt = db()->prepare("UPDATE sheets SET status = 'active', closed_at = NULL, closed_by = NULL WHERE id = ?");
                 $updateStmt->execute([$sheetId]);
                 setFlash('success', 'Feuille réouverte avec succès.');
+            } elseif ($action === 'restore' && $targetSheet['status'] === 'archived') {
+                if (restoreArchivedSheet($sheetId)) {
+                    setFlash('success', 'Feuille restaurée avec succès.');
+                }
             }
         }
     }
@@ -146,7 +159,7 @@ if ($canSeeAll) {
         }
     }
 
-    // Récupérer TOUTES les feuilles
+    // Récupérer TOUTES les feuilles (sauf archivées)
     $sheetsQuery = db()->prepare("
         SELECT s.*,
                u.first_name as creator_first_name,
@@ -156,11 +169,29 @@ if ($canSeeAll) {
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
+        WHERE s.status != 'archived'
         ORDER BY s.created_at DESC
         LIMIT 50
     ");
     $sheetsQuery->execute([$userId]);
     $sheets = $sheetsQuery->fetchAll();
+
+    // Récupérer les feuilles archivées
+    $archivedQuery = db()->prepare("
+        SELECT s.*,
+               u.first_name as creator_first_name,
+               u.last_name as creator_last_name,
+               u.structure as creator_structure,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
+        FROM sheets s
+        JOIN users u ON s.user_id = u.id
+        WHERE s.status = 'archived'
+        ORDER BY s.archived_at DESC
+        LIMIT 20
+    ");
+    $archivedQuery->execute([$userId]);
+    $archivedSheets = $archivedQuery->fetchAll();
 
 } elseif (!$isAdmin && $isStructureAdmin && count($structureCodes) > 0) {
     // Super-utilisateur de structure: voir les feuilles de sa catégorie
@@ -196,7 +227,7 @@ if ($canSeeAll) {
     $structureStatsQuery->execute(array_merge($structureCodes, $structureCodes));
     $structureStats = $structureStatsQuery->fetch();
 
-    // Récupérer les feuilles de la structure
+    // Récupérer les feuilles de la structure (sauf archivées)
     $sheetsQuery = db()->prepare("
         SELECT s.*,
                u.first_name as creator_first_name,
@@ -206,12 +237,29 @@ if ($canSeeAll) {
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
-        WHERE u.structure IN ($placeholders)
+        WHERE u.structure IN ($placeholders) AND s.status != 'archived'
         ORDER BY s.created_at DESC
         LIMIT 20
     ");
     $sheetsQuery->execute(array_merge([$userId], $structureCodes));
     $sheets = $sheetsQuery->fetchAll();
+
+    // Récupérer les feuilles archivées de la structure
+    $archivedQuery = db()->prepare("
+        SELECT s.*,
+               u.first_name as creator_first_name,
+               u.last_name as creator_last_name,
+               u.structure as creator_structure,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
+        FROM sheets s
+        JOIN users u ON s.user_id = u.id
+        WHERE u.structure IN ($placeholders) AND s.status = 'archived'
+        ORDER BY s.archived_at DESC
+        LIMIT 10
+    ");
+    $archivedQuery->execute(array_merge([$userId], $structureCodes));
+    $archivedSheets = $archivedQuery->fetchAll();
 } else {
     // Utilisateur standard: voir uniquement ses propres feuilles
     $statsQuery = db()->prepare("
@@ -229,18 +277,31 @@ if ($canSeeAll) {
     $stats = $statsQuery->fetch();
     $structureStats = null;
 
-    // Récupérer les feuilles récentes
+    // Récupérer les feuilles récentes (sauf archivées)
     $sheetsQuery = db()->prepare("
         SELECT s.*,
                (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
                1 as is_owner
         FROM sheets s
-        WHERE s.user_id = ?
+        WHERE s.user_id = ? AND s.status != 'archived'
         ORDER BY s.created_at DESC
         LIMIT 10
     ");
     $sheetsQuery->execute([$userId]);
     $sheets = $sheetsQuery->fetchAll();
+
+    // Récupérer les feuilles archivées de l'utilisateur
+    $archivedQuery = db()->prepare("
+        SELECT s.*,
+               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               1 as is_owner
+        FROM sheets s
+        WHERE s.user_id = ? AND s.status = 'archived'
+        ORDER BY s.archived_at DESC
+        LIMIT 10
+    ");
+    $archivedQuery->execute([$userId]);
+    $archivedSheets = $archivedQuery->fetchAll();
 }
 
 $pageTitle = 'Tableau de bord';
@@ -661,6 +722,77 @@ require_once __DIR__ . '/../../includes/header.php';
             </div>
             <h3>Aucune feuille pour le moment</h3>
             <p>Aucune feuille d'émargement n'a été créée dans l'organisation.</p>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<?php if (!empty($archivedSheets)): ?>
+<!-- Section des feuilles archivées -->
+<div class="card mt-4 border-secondary">
+    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">
+            <i class="bi bi-archive me-2"></i>Feuilles archivées
+            <span class="badge bg-light text-secondary ms-2"><?= count($archivedSheets) ?></span>
+        </h5>
+        <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#archivedSection">
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+    <div id="archivedSection" class="collapse">
+        <div class="card-body p-0">
+            <div class="list-group list-group-flush">
+                <?php foreach ($archivedSheets as $sheet): ?>
+                    <div class="list-group-item sheet-item status-archived">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center mb-1">
+                                    <h6 class="mb-0 me-2 text-muted"><?= sanitize($sheet['title']) ?></h6>
+                                    <span class="badge bg-secondary">Archivée</span>
+                                    <?php if (!empty($sheet['archived_reason'])): ?>
+                                        <small class="ms-2 text-muted">
+                                            (<?= $sheet['archived_reason'] === 'auto' ? 'automatique' : 'manuel' ?>)
+                                        </small>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="text-muted small">
+                                    <i class="bi bi-calendar-event me-1"></i>
+                                    <?= formatDateFr($sheet['event_date']) ?>
+                                    <?php if (!empty($sheet['creator_first_name'])): ?>
+                                        <span class="ms-2">
+                                            <i class="bi bi-person me-1"></i><?= sanitize($sheet['creator_first_name'] . ' ' . $sheet['creator_last_name']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <span class="ms-2">
+                                        <i class="bi bi-vector-pen me-1"></i><?= $sheet['signature_count'] ?> signature(s)
+                                    </span>
+                                    <?php if (!empty($sheet['archived_at'])): ?>
+                                        <span class="ms-2">
+                                            <i class="bi bi-archive me-1"></i>Archivée le <?= formatDateFr($sheet['archived_at']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="btn-group">
+                                <a href="<?= SITE_URL ?>/pages/dashboard/view.php?id=<?= $sheet['id'] ?>"
+                                   class="btn btn-sm btn-outline-secondary" title="Voir">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <?php if ($sheet['is_owner'] || $isAdmin): ?>
+                                    <form method="POST" class="d-inline" onsubmit="return confirm('Restaurer cette feuille archivée ?')">
+                                        <?= csrfField() ?>
+                                        <input type="hidden" name="action" value="restore">
+                                        <input type="hidden" name="sheet_id" value="<?= $sheet['id'] ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Restaurer">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
 </div>

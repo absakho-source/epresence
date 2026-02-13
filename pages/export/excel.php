@@ -316,10 +316,12 @@ header('Expires: 0');
     <div class="footer-section">
         <table class="footer-table">
             <tr>
-                <?php if ($isMultiDay): ?>
-                <td class="total">Total signatures : <?= count($signatures) ?> (sur <?= count($eventDays) ?> jours)</td>
+                <?php
+                $attendanceRate = calculateAttendanceRate(count($signatures), $sheet['expected_participants'] ?? null);
+                if ($isMultiDay): ?>
+                <td class="total">Total signatures : <?= count($signatures) ?> (sur <?= count($eventDays) ?> jours)<?php if ($attendanceRate): ?> — Taux : <?= $attendanceRate['percentage'] ?>%<?php endif; ?></td>
                 <?php else: ?>
-                <td class="total">Total participants : <?= count($signatures) ?></td>
+                <td class="total">Total participants : <?= count($signatures) ?><?php if ($attendanceRate): ?> / <?= $sheet['expected_participants'] ?> (<?= $attendanceRate['percentage'] ?>%)<?php endif; ?></td>
                 <?php endif; ?>
                 <td align="right">Document généré le : <?= date('d/m/Y à H:i') ?></td>
             </tr>

@@ -15,7 +15,8 @@ $formData = [
     'event_time' => '',
     'end_time' => '',
     'auto_close' => false,
-    'location' => ''
+    'location' => '',
+    'expected_participants' => ''
 ];
 
 // Types de fichiers autorisés
@@ -52,7 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'event_time' => $_POST['event_time'] ?? '',
             'end_time' => $_POST['end_time'] ?? '',
             'auto_close' => isset($_POST['auto_close']),
-            'location' => trim($_POST['location'] ?? '')
+            'location' => trim($_POST['location'] ?? ''),
+            'expected_participants' => trim($_POST['expected_participants'] ?? '')
         ];
 
         // Si end_date n'est pas spécifié, utiliser event_date
@@ -103,10 +105,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             try {
                 $stmt = db()->prepare("
-                    INSERT INTO sheets (user_id, title, description, event_date, end_date, event_time, end_time, auto_close, location, unique_code, creator_name, creator_structure)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO sheets (user_id, title, description, event_date, end_date, event_time, end_time, auto_close, location, unique_code, creator_name, creator_structure, expected_participants)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ");
                 $autoCloseValue = $formData['auto_close'] ? 't' : 'f';
+                $expectedParticipants = !empty($formData['expected_participants']) ? intval($formData['expected_participants']) : null;
                 $stmt->execute([
                     getCurrentUserId(),
                     $formData['title'],
@@ -119,7 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $formData['location'],
                     $uniqueCode,
                     $creatorName,
-                    $creatorStructure
+                    $creatorStructure,
+                    $expectedParticipants
                 ]);
 
                 $sheetId = db()->lastInsertId();
@@ -274,6 +278,20 @@ require_once __DIR__ . '/../../includes/header.php';
                         <input type="text" class="form-control" id="location" name="location"
                                value="<?= sanitize($formData['location']) ?>"
                                placeholder="Ex: Salle de réunion A, Bâtiment principal..." required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="expected_participants" class="form-label">
+                            Participants attendus
+                            <small class="text-muted">(optionnel)</small>
+                        </label>
+                        <input type="number" class="form-control" id="expected_participants" name="expected_participants"
+                               value="<?= sanitize($formData['expected_participants']) ?>"
+                               min="1" max="9999" placeholder="Ex: 25">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Permet de calculer le taux de présence (signatures / attendus).
+                        </div>
                     </div>
 
                     <!-- Section Documents -->

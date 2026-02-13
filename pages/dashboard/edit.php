@@ -63,7 +63,8 @@ $formData = [
     'event_time' => $sheet['event_time'],
     'end_time' => isset($sheet['end_time']) ? $sheet['end_time'] : '',
     'auto_close' => isset($sheet['auto_close']) ? $sheet['auto_close'] : false,
-    'location' => $sheet['location']
+    'location' => $sheet['location'],
+    'expected_participants' => isset($sheet['expected_participants']) ? $sheet['expected_participants'] : ''
 ];
 
 // Traitement du formulaire
@@ -79,7 +80,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'event_time' => $_POST['event_time'] ?? '',
             'end_time' => $_POST['end_time'] ?? '',
             'auto_close' => isset($_POST['auto_close']),
-            'location' => trim($_POST['location'] ?? '')
+            'location' => trim($_POST['location'] ?? ''),
+            'expected_participants' => trim($_POST['expected_participants'] ?? '')
         ];
 
         // Si end_date n'est pas spécifié, utiliser event_date
@@ -121,10 +123,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         event_time = ?,
                         end_time = ?,
                         auto_close = ?,
-                        location = ?
+                        location = ?,
+                        expected_participants = ?
                     WHERE id = ?
                 ");
                 $autoCloseValue = $formData['auto_close'] ? 't' : 'f';
+                $expectedParticipants = !empty($formData['expected_participants']) ? intval($formData['expected_participants']) : null;
                 $stmt->execute([
                     $formData['title'],
                     $formData['description'] ?: null,
@@ -134,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $formData['end_time'] ?: null,
                     $autoCloseValue,
                     $formData['location'],
+                    $expectedParticipants,
                     $sheetId
                 ]);
 
@@ -285,6 +290,20 @@ require_once __DIR__ . '/../../includes/header.php';
                         <label for="location" class="form-label">Lieu <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="location" name="location"
                                value="<?= sanitize($formData['location']) ?>" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="expected_participants" class="form-label">
+                            Participants attendus
+                            <small class="text-muted">(optionnel)</small>
+                        </label>
+                        <input type="number" class="form-control" id="expected_participants" name="expected_participants"
+                               value="<?= sanitize($formData['expected_participants']) ?>"
+                               min="1" max="9999" placeholder="Ex: 25">
+                        <div class="form-text">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Permet de calculer le taux de présence (signatures / attendus).
+                        </div>
                     </div>
 
                     <!-- Documents existants -->
