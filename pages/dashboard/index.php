@@ -165,7 +165,7 @@ if ($canSeeAll) {
                u.first_name as creator_first_name,
                u.last_name as creator_last_name,
                u.structure as creator_structure,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
@@ -182,7 +182,7 @@ if ($canSeeAll) {
                u.first_name as creator_first_name,
                u.last_name as creator_last_name,
                u.structure as creator_structure,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
@@ -233,7 +233,7 @@ if ($canSeeAll) {
                u.first_name as creator_first_name,
                u.last_name as creator_last_name,
                u.structure as creator_structure,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
@@ -250,7 +250,7 @@ if ($canSeeAll) {
                u.first_name as creator_first_name,
                u.last_name as creator_last_name,
                u.structure as creator_structure,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                CASE WHEN s.user_id = ? THEN 1 ELSE 0 END as is_owner
         FROM sheets s
         JOIN users u ON s.user_id = u.id
@@ -280,7 +280,7 @@ if ($canSeeAll) {
     // Récupérer les feuilles récentes (sauf archivées)
     $sheetsQuery = db()->prepare("
         SELECT s.*,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                1 as is_owner
         FROM sheets s
         WHERE s.user_id = ? AND s.status != 'archived'
@@ -293,7 +293,7 @@ if ($canSeeAll) {
     // Récupérer les feuilles archivées de l'utilisateur
     $archivedQuery = db()->prepare("
         SELECT s.*,
-               (SELECT COUNT(*) FROM signatures WHERE sheet_id = s.id) as signature_count,
+               (SELECT COUNT(DISTINCT email) FROM signatures WHERE sheet_id = s.id) as signature_count,
                1 as is_owner
         FROM sheets s
         WHERE s.user_id = ? AND s.status = 'archived'

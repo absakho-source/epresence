@@ -462,11 +462,12 @@ if ($structureLogo) {
     <!-- Footer -->
     <div class="footer">
         <?php
-        $attendanceRate = calculateAttendanceRate(count($signatures), $sheet['expected_participants'] ?? null);
+        $uniqueParticipants = count(array_unique(array_column($signatures, 'email')));
+        $attendanceRate = calculateAttendanceRate($uniqueParticipants, $sheet['expected_participants'] ?? null);
         if ($isMultiDay): ?>
-            <span><strong>Total signatures :</strong> <?= count($signatures) ?> (sur <?= count($eventDays) ?> jours)<?php if ($attendanceRate): ?> — <strong>Taux :</strong> <?= $attendanceRate['percentage'] ?>%<?php endif; ?></span>
+            <span><strong>Participants uniques :</strong> <?= $uniqueParticipants ?> — <strong>Total signatures :</strong> <?= count($signatures) ?> (sur <?= count($eventDays) ?> jours)<?php if ($attendanceRate): ?> — <strong>Taux :</strong> <?= $attendanceRate['percentage'] ?>%<?php endif; ?></span>
         <?php else: ?>
-            <span><strong>Total participants :</strong> <?= count($signatures) ?><?php if ($attendanceRate): ?> / <?= $sheet['expected_participants'] ?> (<?= $attendanceRate['percentage'] ?>%)<?php endif; ?></span>
+            <span><strong>Total participants :</strong> <?= $uniqueParticipants ?><?php if ($attendanceRate): ?> / <?= $sheet['expected_participants'] ?> (<?= $attendanceRate['percentage'] ?>%)<?php endif; ?></span>
         <?php endif; ?>
         <span><strong>Document généré le :</strong> <?= date('d/m/Y à H:i') ?></span>
     </div>

@@ -310,16 +310,25 @@ require_once __DIR__ . '/../../includes/header.php';
                         <strong>Lieu :</strong> <?= sanitize($sheet['location']) ?>
                     </p>
                 <?php endif; ?>
-                <?php $attendanceRate = calculateAttendanceRate(count($signatures), $sheet['expected_participants'] ?? null); ?>
+                <?php
+                $uniqueParticipants = count(array_unique(array_column($signatures, 'email')));
+                $attendanceRate = calculateAttendanceRate($uniqueParticipants, $sheet['expected_participants'] ?? null);
+                ?>
                 <p class="mb-0">
                     <i class="bi bi-vector-pen me-2 text-muted"></i>
-                    <strong>Signatures :</strong>
+                    <strong>Participants :</strong>
                     <?php if ($attendanceRate): ?>
                         <span class="badge bg-<?= $attendanceRate['badge'] ?>">
                             <?= $attendanceRate['ratio'] ?> (<?= $attendanceRate['percentage'] ?>%)
                         </span>
+                        <?php if ($isMultiDay): ?>
+                            <small class="text-muted ms-1">(<?= count($signatures) ?> signatures sur <?= count($eventDays) ?> jours)</small>
+                        <?php endif; ?>
                     <?php else: ?>
-                        <?= count($signatures) ?>
+                        <?= $uniqueParticipants ?>
+                        <?php if ($isMultiDay && count($signatures) > $uniqueParticipants): ?>
+                            <small class="text-muted">(<?= count($signatures) ?> signatures sur <?= count($eventDays) ?> jours)</small>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </p>
             </div>
