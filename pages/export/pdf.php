@@ -282,7 +282,7 @@ if ($structureLogo) {
             vertical-align: middle;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: transparent;
         }
         .signature-img {
             max-width: 68px;
