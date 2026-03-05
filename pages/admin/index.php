@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             'first_name' => trim($_POST['first_name']),
             'last_name' => trim($_POST['last_name']),
             'function_title' => trim($_POST['function_title']),
+            'phone' => trim($_POST['phone'] ?? ''),
             'structure' => trim($_POST['structure']),
             'is_structure_admin' => isset($_POST['is_structure_admin']),
             'role' => in_array($_POST['role'], array('user', 'admin')) ? $_POST['role'] : 'user',
@@ -365,6 +366,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     data-first-name="<?= sanitize($user['first_name']) ?>"
                                                     data-last-name="<?= sanitize($user['last_name']) ?>"
                                                     data-function-title="<?= sanitize($user['function_title'] ?? '') ?>"
+                                                    data-phone="<?= sanitize($user['phone'] ?? '') ?>"
                                                     data-structure="<?= sanitize($user['structure']) ?>"
                                                     data-is-structure-admin="<?= !empty($user['is_structure_admin']) ? '1' : '0' ?>"
                                                     data-role="<?= $user['role'] ?>"
@@ -523,6 +525,11 @@ require_once __DIR__ . '/../../includes/header.php';
                                placeholder="Ex: Chef de service, Analyste...">
                     </div>
                     <div class="mb-3">
+                        <label for="editPhone" class="form-label">Téléphone</label>
+                        <input type="tel" class="form-control" id="editPhone" name="phone"
+                               placeholder="Ex: 77 123 45 67">
+                    </div>
+                    <div class="mb-3">
                         <label for="editStructure" class="form-label">Structure</label>
                         <select class="form-select" id="editStructure" name="structure">
                             <option value="">-- Aucune --</option>
@@ -670,6 +677,7 @@ document.getElementById('editUserModal').addEventListener('show.bs.modal', funct
     document.getElementById('editFirstName').value = button.getAttribute('data-first-name');
     document.getElementById('editLastName').value = button.getAttribute('data-last-name');
     document.getElementById('editFunctionTitle').value = button.getAttribute('data-function-title') || '';
+    document.getElementById('editPhone').value = button.getAttribute('data-phone') || '';
     document.getElementById('editStructure').value = button.getAttribute('data-structure') || '';
     document.getElementById('editIsStructureAdmin').checked = button.getAttribute('data-is-structure-admin') === '1';
     document.getElementById('editStatus').value = button.getAttribute('data-status');

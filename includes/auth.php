@@ -374,7 +374,7 @@ function getUserById($userId) {
  * Mettre à jour un utilisateur (admin)
  */
 function updateUser($userId, $data) {
-    $allowedFields = array('first_name', 'last_name', 'function_title', 'structure', 'is_structure_admin', 'role', 'status');
+    $allowedFields = array('first_name', 'last_name', 'function_title', 'phone', 'structure', 'is_structure_admin', 'role', 'status');
     $updates = array();
     $params = array();
 
