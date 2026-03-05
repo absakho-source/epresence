@@ -357,7 +357,6 @@ require_once __DIR__ . '/../../includes/header.php';
                                     </td>
                                     <td><small><?= formatDateFr($user['created_at']) ?></small></td>
                                     <td class="text-end">
-                                        <?php if (!$isCurrentUser): ?>
                                             <!-- Bouton Éditer -->
                                             <button type="button" class="btn btn-sm btn-outline-primary"
                                                     data-bs-toggle="modal"
@@ -383,6 +382,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     title="Réinitialiser le mot de passe">
                                                 <i class="bi bi-key"></i>
                                             </button>
+                                        <?php if (!$isCurrentUser): ?>
                                             <?php if (!empty($user['structure'])): ?>
                                             <!-- Bouton Responsable de structure -->
                                             <form method="POST" class="d-inline">
@@ -418,8 +418,6 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
-                                        <?php else: ?>
-                                            <span class="text-muted">-</span>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
