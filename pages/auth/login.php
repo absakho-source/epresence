@@ -51,14 +51,7 @@ require_once __DIR__ . '/../../includes/header.php';
                     </div>
                 <?php endif; ?>
 
-                <?php if (DEBUG_MODE): ?>
-                    <div class="alert alert-info small mb-3">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <strong>Mode test :</strong> Cliquez sur "Remplir" pour utiliser les identifiants de test.
-                    </div>
-                <?php endif; ?>
-
-                <form method="POST" action="" novalidate>
+<form method="POST" action="" novalidate>
                     <?= csrfField() ?>
 
                     <div class="mb-3">
@@ -82,22 +75,9 @@ require_once __DIR__ . '/../../includes/header.php';
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
                         </button>
-                        <?php if (DEBUG_MODE): ?>
-                            <button type="button" class="btn btn-outline-secondary" onclick="fillTestCredentials()">
-                                <i class="bi bi-lightning me-1"></i>Remplir (test)
-                            </button>
-                        <?php endif; ?>
                     </div>
                 </form>
 
-                <?php if (DEBUG_MODE): ?>
-                <script>
-                function fillTestCredentials() {
-                    document.getElementById('email').value = 'admin@economie.gouv.sn';
-                    document.getElementById('password').value = 'Admin@2025';
-                }
-                </script>
-                <?php endif; ?>
             </div>
             <div class="card-footer text-center py-3">
                 <span class="text-muted">Pas encore de compte ?</span>

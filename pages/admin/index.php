@@ -67,6 +67,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         } else {
             setFlash('error', 'Erreur lors de la mise à jour.');
         }
+    } elseif ($action === 'reset_password' && $userId > 0) {
+        $newPassword = trim($_POST['new_password'] ?? '');
+        if (strlen($newPassword) < 8) {
+            setFlash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
+        } else {
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+            $stmt = db()->prepare("UPDATE users SET password = ? WHERE id = ?");
+            if ($stmt->execute([$hashedPassword, $userId])) {
+                $targetUser = getUserById($userId);
+                setFlash('success', 'Mot de passe de ' . $targetUser['first_name'] . ' ' . $targetUser['last_name'] . ' réinitialisé avec succès.');
+            } else {
+                setFlash('error', 'Erreur lors de la réinitialisation du mot de passe.');
+            }
+        }
     } elseif ($action === 'toggle_structure_admin' && $userId > 0) {
         // Toggle responsable de structure
         $user = getUserById($userId);
@@ -356,6 +370,15 @@ require_once __DIR__ . '/../../includes/header.php';
                                                     title="Modifier">
                                                 <i class="bi bi-pencil"></i>
                                             </button>
+                                            <!-- Bouton Réinitialiser mot de passe -->
+                                            <button type="button" class="btn btn-sm btn-outline-info"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#resetPasswordModal"
+                                                    data-user-id="<?= $user['id'] ?>"
+                                                    data-user-name="<?= sanitize($user['first_name'] . ' ' . $user['last_name']) ?>"
+                                                    title="Réinitialiser le mot de passe">
+                                                <i class="bi bi-key"></i>
+                                            </button>
                                             <?php if (!empty($user['structure'])): ?>
                                             <!-- Bouton Responsable de structure -->
                                             <form method="POST" class="d-inline">
@@ -596,6 +619,47 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
 </div>
 
+<!-- Modal Réinitialiser mot de passe -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" action="">
+                <?= csrfField() ?>
+                <input type="hidden" name="action" value="reset_password">
+                <input type="hidden" name="user_id" id="resetPasswordUserId">
+
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="resetPasswordModalLabel">
+                        <i class="bi bi-key me-2"></i>Réinitialiser le mot de passe
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Réinitialiser le mot de passe de <strong id="resetPasswordUserName"></strong>.</p>
+
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Nouveau mot de passe</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="newPassword" name="new_password"
+                                   minlength="8" required placeholder="Minimum 8 caractères">
+                            <button type="button" class="btn btn-outline-secondary" onclick="generatePassword()" title="Générer un mot de passe">
+                                <i class="bi bi-shuffle"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">Communiquez ce mot de passe à l'utilisateur. Il pourra le modifier depuis son profil.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-info text-white">
+                        <i class="bi bi-check-lg me-1"></i>Réinitialiser
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Remplir le modal avec les données de l'utilisateur
 document.getElementById('editUserModal').addEventListener('show.bs.modal', function (event) {
@@ -626,6 +690,24 @@ document.getElementById('rejectModal').addEventListener('show.bs.modal', functio
     document.getElementById('rejectUserName').textContent = button.getAttribute('data-user-name');
     document.getElementById('rejectReason').value = '';
 });
+
+// Remplir le modal de réinitialisation de mot de passe
+document.getElementById('resetPasswordModal').addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    document.getElementById('resetPasswordUserId').value = button.getAttribute('data-user-id');
+    document.getElementById('resetPasswordUserName').textContent = button.getAttribute('data-user-name');
+    document.getElementById('newPassword').value = '';
+});
+
+// Générer un mot de passe aléatoire
+function generatePassword() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    var password = '';
+    for (var i = 0; i < 10; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    document.getElementById('newPassword').value = password;
+}
 </script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>
