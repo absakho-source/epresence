@@ -1,12 +1,13 @@
 <?php
 /**
  * e-Presence - Fonctions d'envoi d'emails
+ * Utilise PHPMailer via SMTP si configuré, sinon fallback sur mail()
  */
 
 require_once __DIR__ . '/../config/config.php';
 
 /**
- * Envoyer un email (utilise mail() natif ou SMTP si configuré)
+ * Envoyer un email (SMTP via PHPMailer si configuré, sinon mail() natif)
  */
 function sendEmail($to, $subject, $htmlBody, $textBody = null) {
     // Si pas de corps texte, générer depuis HTML
@@ -14,24 +15,73 @@ function sendEmail($to, $subject, $htmlBody, $textBody = null) {
         $textBody = strip_tags(str_replace(['<br>', '<br/>', '<br />', '</p>'], "\n", $htmlBody));
     }
 
-    // Headers
-    $headers = array();
-    $headers[] = 'MIME-Version: 1.0';
-    $headers[] = 'Content-type: text/html; charset=UTF-8';
-    $headers[] = 'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM . '>';
-    $headers[] = 'Reply-To: ' . MAIL_FROM;
-    $headers[] = 'X-Mailer: e-Presence/1.0';
+    // Utiliser PHPMailer via SMTP si configuré
+    if (!empty(MAIL_SMTP_HOST)) {
+        $success = sendEmailSMTP($to, $subject, $htmlBody, $textBody);
+    } else {
+        // Fallback sur mail() natif
+        $headers = array();
+        $headers[] = 'MIME-Version: 1.0';
+        $headers[] = 'Content-type: text/html; charset=UTF-8';
+        $headers[] = 'From: ' . MAIL_FROM_NAME . ' <' . MAIL_FROM . '>';
+        $headers[] = 'Reply-To: ' . MAIL_FROM;
+        $headers[] = 'X-Mailer: e-Presence/1.0';
+        $success = @mail($to, $subject, $htmlBody, implode("\r\n", $headers));
+    }
 
-    // Utiliser la fonction mail() native de PHP
-    $success = @mail($to, $subject, $htmlBody, implode("\r\n", $headers));
-
-    // Log en debug
+    // Log
     if (DEBUG_MODE) {
-        $logMessage = date('Y-m-d H:i:s') . " - Email to: $to - Subject: $subject - Status: " . ($success ? 'OK' : 'FAILED') . "\n";
+        $method = !empty(MAIL_SMTP_HOST) ? 'SMTP' : 'mail()';
+        $logMessage = date('Y-m-d H:i:s') . " - [$method] Email to: $to - Subject: $subject - Status: " . ($success ? 'OK' : 'FAILED') . "\n";
         @file_put_contents(BASE_PATH . '/logs/emails.log', $logMessage, FILE_APPEND);
     }
 
     return $success;
+}
+
+/**
+ * Envoyer un email via SMTP avec PHPMailer
+ */
+function sendEmailSMTP($to, $subject, $htmlBody, $textBody) {
+    require_once __DIR__ . '/../vendor/phpmailer/Exception.php';
+    require_once __DIR__ . '/../vendor/phpmailer/PHPMailer.php';
+    require_once __DIR__ . '/../vendor/phpmailer/SMTP.php';
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+
+    try {
+        // Configuration SMTP
+        $mail->isSMTP();
+        $mail->Host       = MAIL_SMTP_HOST;
+        $mail->Port       = intval(MAIL_SMTP_PORT);
+        $mail->SMTPSecure = MAIL_SMTP_SECURE;
+        $mail->CharSet    = 'UTF-8';
+
+        if (!empty(MAIL_SMTP_USER)) {
+            $mail->SMTPAuth   = true;
+            $mail->Username   = MAIL_SMTP_USER;
+            $mail->Password   = MAIL_SMTP_PASS;
+        }
+
+        // Expéditeur et destinataire
+        $mail->setFrom(MAIL_FROM, MAIL_FROM_NAME);
+        $mail->addAddress($to);
+
+        // Contenu
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = $htmlBody;
+        $mail->AltBody = $textBody;
+
+        $mail->send();
+        return true;
+    } catch (\Exception $e) {
+        if (DEBUG_MODE) {
+            $errorLog = date('Y-m-d H:i:s') . " - SMTP Error: " . $mail->ErrorInfo . "\n";
+            @file_put_contents(BASE_PATH . '/logs/emails.log', $errorLog, FILE_APPEND);
+        }
+        return false;
+    }
 }
 
 /**
