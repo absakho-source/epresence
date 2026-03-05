@@ -213,17 +213,6 @@ $bodyClass = 'sign-page';
             font-size: 0.8rem;
             padding: 4px 10px;
         }
-        /* Phone input styling */
-        .phone-country-code {
-            flex-shrink: 0;
-            max-width: 70px;
-            text-align: center;
-            font-weight: 500;
-        }
-        .phone-input {
-            flex: 1;
-            min-width: 0;
-        }
         /* Days selection for multi-day events */
         .days-selection {
             background: #f8f9fa;
@@ -407,17 +396,11 @@ $bodyClass = 'sign-page';
                                 <div class="row">
                                     <div class="col-6 mb-3">
                                         <label for="phone" class="form-label">Téléphone <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control phone-country-code" id="phone_country" value="+221" maxlength="5">
-                                            <input type="tel" class="form-control phone-input" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
-                                        </div>
+                                        <input type="tel" class="form-control" id="phone" name="phone" required autocomplete="tel" placeholder="77 123 45 67">
                                     </div>
                                     <div class="col-6 mb-3">
                                         <label for="phone_secondary" class="form-label">Tél. secondaire</label>
-                                        <div class="input-group">
-                                            <input type="text" class="form-control phone-country-code" id="phone_secondary_country" value="+221" maxlength="5">
-                                            <input type="tel" class="form-control phone-input" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
-                                        </div>
+                                        <input type="tel" class="form-control" id="phone_secondary" name="phone_secondary" autocomplete="tel" placeholder="Optionnel">
                                     </div>
                                 </div>
 
@@ -520,10 +503,7 @@ $bodyClass = 'sign-page';
                     if (data.structure) document.getElementById('structure').value = data.structure;
                     if (data.function_title) document.getElementById('function_title').value = data.function_title;
 
-                    // Téléphones avec indicatifs
-                    if (data.phone_country) document.getElementById('phone_country').value = data.phone_country;
                     if (data.phone) document.getElementById('phone').value = data.phone;
-                    if (data.phone_secondary_country) document.getElementById('phone_secondary_country').value = data.phone_secondary_country;
                     if (data.phone_secondary) document.getElementById('phone_secondary').value = data.phone_secondary;
 
                     console.log('Données participant restaurées depuis le cache local');
@@ -542,10 +522,8 @@ $bodyClass = 'sign-page';
                     email: document.getElementById('email').value,
                     structure: document.getElementById('structure').value,
                     function_title: document.getElementById('function_title').value,
-                    phone_country: document.getElementById('phone_country').value,
-                    phone: document.getElementById('phone').value.replace(/^\+\d+\s*/, ''), // Sans indicatif
-                    phone_secondary_country: document.getElementById('phone_secondary_country').value,
-                    phone_secondary: document.getElementById('phone_secondary').value.replace(/^\+\d+\s*/, ''),
+                    phone: document.getElementById('phone').value,
+                    phone_secondary: document.getElementById('phone_secondary').value,
                     saved_at: new Date().toISOString()
                 };
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -557,93 +535,6 @@ $bodyClass = 'sign-page';
 
         // Charger les données au démarrage
         loadSavedData();
-
-        // Formats par pays (indicatif => {maxDigits, format})
-        const phoneFormats = {
-            '+221': { maxDigits: 9, format: [2, 3, 2, 2] },       // Sénégal: XX XXX XX XX
-            '+33': { maxDigits: 9, format: [1, 2, 2, 2, 2] },     // France: X XX XX XX XX
-            '+1': { maxDigits: 10, format: [3, 3, 4] },           // USA/Canada: XXX XXX XXXX
-            '+225': { maxDigits: 10, format: [2, 2, 2, 2, 2] },   // Côte d'Ivoire: XX XX XX XX XX
-            '+223': { maxDigits: 8, format: [2, 2, 2, 2] },       // Mali: XX XX XX XX
-            '+222': { maxDigits: 8, format: [2, 2, 2, 2] },       // Mauritanie: XX XX XX XX
-            '+212': { maxDigits: 9, format: [1, 2, 2, 2, 2] },    // Maroc: X XX XX XX XX
-            '+216': { maxDigits: 8, format: [2, 3, 3] },          // Tunisie: XX XXX XXX
-            '+224': { maxDigits: 9, format: [3, 2, 2, 2] },       // Guinée: XXX XX XX XX
-            '+237': { maxDigits: 9, format: [3, 2, 2, 2] },       // Cameroun: XXX XX XX XX
-            '+229': { maxDigits: 8, format: [2, 2, 2, 2] },       // Bénin: XX XX XX XX
-            '+228': { maxDigits: 8, format: [2, 2, 2, 2] },       // Togo: XX XX XX XX
-            '+226': { maxDigits: 8, format: [2, 2, 2, 2] },       // Burkina: XX XX XX XX
-            '+227': { maxDigits: 8, format: [2, 2, 2, 2] },       // Niger: XX XX XX XX
-        };
-
-        // Formatage automatique des numéros selon l'indicatif pays
-        function formatPhoneNumber(value, countryCode) {
-            // Supprimer tout sauf les chiffres
-            let digits = value.replace(/\D/g, '');
-
-            // Obtenir le format pour ce pays (ou format par défaut)
-            const formatConfig = phoneFormats[countryCode] || { maxDigits: 12, format: null };
-
-            // Limiter les chiffres
-            digits = digits.substring(0, formatConfig.maxDigits);
-
-            // Si pas de format défini, retourner les chiffres sans formatage
-            if (!formatConfig.format) {
-                return digits;
-            }
-
-            // Appliquer le format avec espaces
-            let formatted = '';
-            let pos = 0;
-            for (let i = 0; i < formatConfig.format.length && pos < digits.length; i++) {
-                const chunk = digits.substring(pos, pos + formatConfig.format[i]);
-                if (chunk) {
-                    if (formatted) formatted += ' ';
-                    formatted += chunk;
-                    pos += formatConfig.format[i];
-                }
-            }
-
-            return formatted;
-        }
-
-        // S'assurer que l'indicatif commence par +
-        document.querySelectorAll('.phone-country-code').forEach(input => {
-            input.addEventListener('input', function() {
-                let val = this.value.replace(/[^0-9+]/g, '');
-                if (!val.startsWith('+')) {
-                    val = '+' + val.replace(/\+/g, '');
-                }
-                this.value = val;
-
-                // Re-formater le numéro associé quand l'indicatif change
-                const phoneInputId = this.id.replace('_country', '');
-                const phoneInput = document.getElementById(phoneInputId);
-                if (phoneInput && phoneInput.value) {
-                    phoneInput.value = formatPhoneNumber(phoneInput.value, val);
-                }
-            });
-        });
-
-        // Appliquer le formatage aux champs téléphone
-        document.querySelectorAll('.phone-input').forEach(input => {
-            input.addEventListener('input', function(e) {
-                const cursorPos = this.selectionStart;
-                const oldLength = this.value.length;
-
-                // Trouver l'indicatif pays associé
-                const countryInputId = this.id + '_country';
-                const countryInput = document.getElementById(countryInputId);
-                const countryCode = countryInput ? countryInput.value : '+221';
-
-                this.value = formatPhoneNumber(this.value, countryCode);
-
-                // Ajuster la position du curseur
-                const newLength = this.value.length;
-                const newPos = cursorPos + (newLength - oldLength);
-                this.setSelectionRange(newPos, newPos);
-            });
-        });
 
         const canvas = document.getElementById('signatureCanvas');
         if (!canvas) return;
@@ -697,24 +588,6 @@ $bodyClass = 'sign-page';
             // Set signature data
             document.getElementById('signature_data').value = signaturePad.toDataURL('image/png');
 
-            // Prepend country codes to phone numbers (only if not already prepended)
-            const phoneInput = document.getElementById('phone');
-            const phoneCountry = document.getElementById('phone_country');
-            const phoneSecondary = document.getElementById('phone_secondary');
-            const phoneSecondaryCountry = document.getElementById('phone_secondary_country');
-
-            // Sauvegarder les valeurs originales pour les restaurer en cas d'erreur
-            const originalPhone = phoneInput.value;
-            const originalPhoneSecondary = phoneSecondary.value;
-
-            // Ne pas ajouter l'indicatif s'il est déjà présent
-            if (phoneInput.value && !phoneInput.value.startsWith('+')) {
-                phoneInput.value = phoneCountry.value + ' ' + phoneInput.value;
-            }
-            if (phoneSecondary.value && !phoneSecondary.value.startsWith('+')) {
-                phoneSecondary.value = phoneSecondaryCountry.value + ' ' + phoneSecondary.value;
-            }
-
             // Disable button
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<span class="loading-spinner me-2"></span>Validation...';
@@ -744,20 +617,12 @@ $bodyClass = 'sign-page';
                             return;
                         }
                     }
-                    // Restaurer les valeurs originales
-                    phoneInput.value = originalPhone;
-                    phoneSecondary.value = originalPhoneSecondary;
-
                     errorsDiv.innerHTML = data.errors ? data.errors.join('<br>') : data.error;
                     errorsDiv.classList.remove('d-none');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>Valider ma signature';
                 }
             } catch (error) {
-                // Restaurer les valeurs originales
-                phoneInput.value = originalPhone;
-                phoneSecondary.value = originalPhoneSecondary;
-
                 errorsDiv.textContent = 'Erreur de connexion. Vérifiez votre connexion internet et réessayez.';
                 errorsDiv.classList.remove('d-none');
                 submitBtn.disabled = false;
