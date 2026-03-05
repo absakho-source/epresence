@@ -15,7 +15,7 @@
                 </div>
                 <div class="col-md-4 text-center mb-2 mb-md-0">
                     <small class="text-muted d-block"><?= MINISTRY_NAME ?></small>
-                    <small class="text-muted">© <?= date('Y') ?> <a href="https://www.linkedin.com/in/dr-aboubekrine-sakho-4851981b0/" target="_blank" class="text-decoration-none">Abou Sakho</a> - Tous droits réservés</small>
+                    <small class="text-muted">© <?= date('Y') ?> DGPPE/MEPC - e-Présence</small>
                 </div>
                 <div class="col-md-4 text-center text-md-end">
                 </div>
