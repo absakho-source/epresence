@@ -18,6 +18,9 @@
                     <small class="text-muted">© <?= date('Y') ?> DGPPE/MEPC - e-Présence</small>
                 </div>
                 <div class="col-md-4 text-center text-md-end">
+                    <a href="<?= SITE_URL ?>/pages/contact.php" class="text-muted text-decoration-none small">
+                        <i class="bi bi-envelope me-1"></i>Contact
+                    </a>
                 </div>
             </div>
         </div>
