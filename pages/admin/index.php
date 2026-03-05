@@ -242,6 +242,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                 <tr>
                                     <th>Nom</th>
                                     <th>Email</th>
+                                    <th>Téléphone</th>
                                     <th>Structure</th>
                                     <th>Fonction</th>
                                     <th>Date demande</th>
@@ -257,6 +258,7 @@ require_once __DIR__ . '/../../includes/header.php';
                                                 <?= sanitize($pUser['email']) ?>
                                             </a>
                                         </td>
+                                        <td><small><?= !empty($pUser['phone']) ? '<a href="tel:' . sanitize($pUser['phone']) . '" class="text-decoration-none">' . sanitize($pUser['phone']) . '</a>' : '<em class="text-muted">-</em>' ?></small></td>
                                         <td><small><?= $pUser['structure'] ? sanitize(getStructureName($pUser['structure'])) : '<em class="text-muted">Non renseignée</em>' ?></small></td>
                                         <td><small><?= !empty($pUser['function_title']) ? sanitize($pUser['function_title']) : '<em class="text-muted">-</em>' ?></small></td>
                                         <td><small><?= formatDateFr($pUser['created_at'], true) ?></small></td>

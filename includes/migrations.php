@@ -39,6 +39,16 @@ function runMigrations() {
             }
         }
 
+        // Migration: Colonne phone dans users
+        $checkPhone = "SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'phone')";
+        $stmt = $pdo->query($checkPhone);
+        if (!$stmt->fetchColumn()) {
+            $pdo->exec("ALTER TABLE users ADD COLUMN phone VARCHAR(20)");
+            if (defined('DEBUG_MODE') && DEBUG_MODE) {
+                error_log("[e-Présence] Migration: Colonne phone ajoutée à users");
+            }
+        }
+
         return true;
     } catch (PDOException $e) {
         if (defined('DEBUG_MODE') && DEBUG_MODE) {
