@@ -28,15 +28,6 @@ require_once __DIR__ . '/../includes/header.php';
                     </div>
                 </div>
 
-                <div class="d-flex align-items-start mb-3">
-                    <i class="bi bi-building text-primary me-3 fs-5 mt-1"></i>
-                    <div>
-                        <strong>Structure</strong><br>
-                        Direction Générale de la Planification et des Politiques Économiques (DGPPE)<br>
-                        <small class="text-muted"><?= MINISTRY_NAME ?></small>
-                    </div>
-                </div>
-
                 <hr>
 
                 <div class="alert alert-info mb-0">
