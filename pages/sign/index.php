@@ -533,6 +533,25 @@ $bodyClass = 'sign-page';
             }
         }
 
+        // Formatage automatique des numéros de téléphone
+        function formatPhoneInput(input) {
+            input.addEventListener('input', function() {
+                var val = this.value.replace(/\D/g, '');
+                // Sénégal : 9 chiffres commençant par 7, 3 ou 1 → XX XXX XX XX
+                if (val.length <= 9 && /^[731]/.test(val)) {
+                    var parts = [];
+                    if (val.length > 0) parts.push(val.substring(0, 2));
+                    if (val.length > 2) parts.push(val.substring(2, 5));
+                    if (val.length > 5) parts.push(val.substring(5, 7));
+                    if (val.length > 7) parts.push(val.substring(7, 9));
+                    this.value = parts.join(' ');
+                }
+                // Sinon, ne pas formater (numéro étranger ou autre)
+            });
+        }
+        var phoneFields = document.querySelectorAll('input[type="tel"]');
+        phoneFields.forEach(formatPhoneInput);
+
         // Charger les données au démarrage
         loadSavedData();
 

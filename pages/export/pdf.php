@@ -386,6 +386,9 @@ if ($structureLogo) {
         <?php if ($sheet['location']): ?>
             <span><strong>Lieu :</strong> <?= htmlspecialchars($sheet['location']) ?></span>
         <?php endif; ?>
+        <?php if (!empty($sheet['creator_structure'])): ?>
+            <span><strong>Organisé par :</strong> <?= htmlspecialchars($sheet['creator_structure']) ?></span>
+        <?php endif; ?>
     </div>
 
     <?php if (!empty($sheet['description'])): ?>

@@ -4,6 +4,7 @@
  */
 
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../config/structures.php';
 requireLogin();
 
 $errors = [];
@@ -16,7 +17,8 @@ $formData = [
     'end_time' => '',
     'auto_close' => false,
     'location' => '',
-    'expected_participants' => ''
+    'expected_participants' => '',
+    'creator_structure' => ''
 ];
 
 // Types de fichiers autorisés
@@ -54,7 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'end_time' => $_POST['end_time'] ?? '',
             'auto_close' => isset($_POST['auto_close']),
             'location' => trim($_POST['location'] ?? ''),
-            'expected_participants' => trim($_POST['expected_participants'] ?? '')
+            'expected_participants' => trim($_POST['expected_participants'] ?? ''),
+            'creator_structure' => trim($_POST['creator_structure'] ?? '')
         ];
 
         // Si end_date n'est pas spécifié, utiliser event_date
@@ -101,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Récupérer les infos du créateur pour les stocker dans la feuille
             $currentUser = getCurrentUser();
             $creatorName = $currentUser['first_name'] . ' ' . $currentUser['last_name'];
-            $creatorStructure = $currentUser['structure'];
+            $creatorStructure = !empty($formData['creator_structure']) ? $formData['creator_structure'] : $currentUser['structure'];
 
             try {
                 $stmt = db()->prepare("
@@ -194,6 +197,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     regenerateCsrfToken();
 }
 
+// Charger les structures pour le dropdown
+$mepcStructuresGrouped = getMEPCStructuresGrouped();
+$currentUserData = getCurrentUser();
+$defaultStructure = $formData['creator_structure'] ?: ($currentUserData['structure'] ?? '');
+
 $pageTitle = 'Nouvelle feuille';
 require_once __DIR__ . '/../../includes/header.php';
 ?>
@@ -278,6 +286,23 @@ require_once __DIR__ . '/../../includes/header.php';
                         <input type="text" class="form-control" id="location" name="location"
                                value="<?= sanitize($formData['location']) ?>"
                                placeholder="Ex: Salle de réunion A, Bâtiment principal..." required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="creator_structure" class="form-label">Structure organisatrice</label>
+                        <select class="form-select" id="creator_structure" name="creator_structure">
+                            <option value="">-- Sélectionnez --</option>
+                            <?php foreach ($mepcStructuresGrouped as $category => $structures): ?>
+                                <optgroup label="<?= sanitize($category) ?>">
+                                    <?php foreach ($structures as $structureName): ?>
+                                        <option value="<?= sanitize($structureName) ?>" <?= $defaultStructure === $structureName ? 'selected' : '' ?>>
+                                            <?= sanitize($structureName) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-text">Pré-rempli avec votre structure. Modifiable si vous organisez pour une autre direction.</div>
                     </div>
 
                     <div class="mb-4">

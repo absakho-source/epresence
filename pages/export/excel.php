@@ -232,6 +232,9 @@ header('Expires: 0');
             <?php if ($sheet['location']): ?>
             <td><span class="info-label">Lieu :</span> <?= htmlspecialchars($sheet['location']) ?></td>
             <?php endif; ?>
+            <?php if (!empty($sheet['creator_structure'])): ?>
+            <td><span class="info-label">Organisé par :</span> <?= htmlspecialchars($sheet['creator_structure']) ?></td>
+            <?php endif; ?>
         </tr>
     </table>
 

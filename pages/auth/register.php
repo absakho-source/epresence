@@ -204,6 +204,19 @@ document.getElementById('email').addEventListener('input', function() {
         if (helpText) helpText.style.display = 'block';
     }
 });
+
+// Formatage automatique du téléphone sénégalais
+document.getElementById('phone').addEventListener('input', function() {
+    var val = this.value.replace(/\D/g, '');
+    if (val.length <= 9 && /^[731]/.test(val)) {
+        var parts = [];
+        if (val.length > 0) parts.push(val.substring(0, 2));
+        if (val.length > 2) parts.push(val.substring(2, 5));
+        if (val.length > 5) parts.push(val.substring(5, 7));
+        if (val.length > 7) parts.push(val.substring(7, 9));
+        this.value = parts.join(' ');
+    }
+});
 </script>
 
 <?php require_once __DIR__ . '/../../includes/footer.php'; ?>

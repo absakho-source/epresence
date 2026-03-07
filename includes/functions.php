@@ -224,9 +224,28 @@ function formatPhone($phone) {
     if ($phone === null || $phone === '') {
         return '';
     }
-    $phone = preg_replace('/[\s\.\-]/', '', $phone);
-    if (strlen($phone) === 10) {
-        return implode(' ', str_split($phone, 2));
+    // Nettoyer les séparateurs
+    $clean = preg_replace('/[\s\.\-]/', '', $phone);
+    $hasPlus = (substr($clean, 0, 1) === '+');
+    $digits = preg_replace('/\D/', '', $clean);
+
+    // Sénégal : 9 chiffres commençant par 7, 3 ou 1 → XX XXX XX XX
+    if (strlen($digits) === 9 && in_array(substr($digits, 0, 1), ['7', '3', '1'])) {
+        return substr($digits, 0, 2) . ' ' . substr($digits, 2, 3) . ' ' . substr($digits, 5, 2) . ' ' . substr($digits, 7, 2);
+    }
+    // Avec indicatif +221 : 12 chiffres → +221 XX XXX XX XX
+    if (strlen($digits) === 12 && substr($digits, 0, 3) === '221') {
+        $local = substr($digits, 3);
+        return '+221 ' . substr($local, 0, 2) . ' ' . substr($local, 2, 3) . ' ' . substr($local, 5, 2) . ' ' . substr($local, 7, 2);
+    }
+    // Autres numéros : grouper par 2
+    if (strlen($digits) >= 8 && strlen($digits) <= 10) {
+        $formatted = implode(' ', str_split($digits, 2));
+        return $hasPlus ? '+' . $formatted : $formatted;
+    }
+    // Si indicatif étranger, garder tel quel mais avec espaces
+    if ($hasPlus && strlen($digits) > 10) {
+        return '+' . $digits;
     }
     return $phone;
 }
